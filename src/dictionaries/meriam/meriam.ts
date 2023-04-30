@@ -3,7 +3,7 @@ import { Dictionary } from "../dictionary";
 import { MerriamFetcher } from "./meriamFetcher";
 import { MerriamParser } from "./meriamParser";
 
-export class Merriam implements Dictionary {
+export default class Merriam implements Dictionary {
   fetcher: MerriamFetcher;
   constructor(apiKey: string) {
     this.fetcher = new MerriamFetcher(apiKey);
