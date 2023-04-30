@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import SynDefinition from "./synDefinition";
 import { TagCloud } from "react-tagcloud/rn";
 
@@ -14,28 +14,16 @@ const SynonymListView: FC<SynonymListProps> = ({
 }) => {
   const [extended, setExtended] = React.useState<Boolean>(false);
 
-  const { buttonRow } = StyleSheet.create({
-    buttonRow: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      flexWrap: "wrap",
-      marginHorizontal: 5,
-      gap: 5,
-    },
-  });
-
   const data = buildCloudData(synArray);
+
   return (
-    <View style={buttonRow}>
-      <TagCloud
-        minSize={20}
-        maxSize={35}
-        tags={data}
-        shuffle={false}
-        onPress={(tag) => addWord(tag.value)}
-      />
-    </View>
+    <TagCloud
+      minSize={20}
+      maxSize={35}
+      tags={data}
+      shuffle={false}
+      onPress={(tag) => addWord(tag.value)}
+    />
   );
 };
 
