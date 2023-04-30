@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { TextInput, StyleSheet, Button } from "react-native";
+import { TextInput, StyleSheet } from "react-native";
 
 interface WordInputProps {
   onAddWord: (word: string) => void;
@@ -20,10 +20,7 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord }) => {
 
   const { inputStyle } = StyleSheet.create({
     inputStyle: {
-      height: 40,
-      margin: 12,
       borderWidth: 1,
-      padding: 10,
     },
   });
 
