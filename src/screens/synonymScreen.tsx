@@ -6,6 +6,7 @@ import {
   View,
   ScrollView,
   Button,
+  ActivityIndicator,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,24 +18,22 @@ import SynDefinition, { GetNextColor } from "../synDefinition";
 
 const SynonymScreen = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
-
   const dict = React.useRef(new Merriam(process.env.REACT_APP_API_KEY));
 
   const addWord = async (word: string) => {
+    if (synArray.findIndex((definiton) => definiton.Word == word) >= 0) return;
+    const newSyn = new SynDefinition(word);
+    setSynArray((previous) => [...previous, newSyn]);
+
     try {
-      if (synArray.findIndex((definiton) => definiton.Word == word) >= 0)
-        return;
-      const newSyn = new SynDefinition(word);
-
-      setSynArray((previous) => [...previous, newSyn]);
-
-      var response = await dict.current.GetSynonyms(word);
+      const response = await dict.current.GetSynonyms(word);
       newSyn.Color = GetNextColor(synArray);
       newSyn.Sets = response.Sets; //TODO: update when more data than just sets
-      setSynArray((previous) => [...previous]);
+      setSynArray((previous) => Array.from(previous));
     } catch (error) {
       ToastAndroid.show(error.message, ToastAndroid.LONG);
-      console.log(error.message);
+      newSyn.Sets = [];
+      setSynArray((previous) => Array.from(previous));
     }
   };
 
@@ -61,7 +60,12 @@ const SynonymScreen = ({ navigation }) => {
           onPress={() => navigation.navigate("Options")}
         ></Button>
       </View>
-      <View style={styles.connectionIndicator}></View>
+      <View style={styles.connectionIndicator}>
+        <ActivityIndicator
+          animating={synArray.find((synDef) => !synDef.WasFetched) != null}
+          size="large"
+        />
+      </View>
       <View style={styles.selectedContainer}>
         <View style={styles.selectedList}>
           {synArray.map((synDef, index) => (
@@ -74,18 +78,18 @@ const SynonymScreen = ({ navigation }) => {
           ))}
         </View>
         <View style={styles.selectedClearButton}>
-          <Button title={"clear"} onPress={() => {}}></Button>
+          <Button
+            title={"clear"}
+            onPress={() => {
+              setSynArray([]);
+            }}
+            disabled={synArray.length == 0}
+          ></Button>
         </View>
       </View>
 
       <View style={styles.inputContainer}>
-        <View style={styles.inputField}>
-          <WordInputField onAddWord={addWord} />
-        </View>
-
-        <View style={styles.inputAddButton}>
-          <Button title={"add"} onPress={() => {}}></Button>
-        </View>
+        <WordInputField onAddWord={addWord} />
       </View>
     </SafeAreaView>
   );
@@ -107,20 +111,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignContent: "center",
   },
-  inputAddButton: {
-    flex: 1,
-    backgroundColor: "blue",
-  },
+
   inputContainer: {
     backgroundColor: "pink",
     marginVertical: 10,
     flexDirection: "row",
-  },
-  inputField: {
-    flex: 5,
-    backgroundColor: "red",
-    justifyContent: "center",
-    alignItems: "center",
   },
   menuButton: {
     position: "absolute",
@@ -155,10 +150,6 @@ const styles = StyleSheet.create({
     flex: 10,
     backgroundColor: "violet",
     zIndex: 1,
-  },
-
-  lists: {
-    marginTop: "10%",
   },
 });
 
