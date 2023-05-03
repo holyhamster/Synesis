@@ -1,19 +1,18 @@
 import React, { FC } from "react";
-import { TextInput, StyleSheet, View, Button } from "react-native";
+import { TextInput, StyleSheet, View, TouchableOpacity } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
 
 interface WordInputProps {
+  inputRef: React.RefObject<TextInput>;
   onAddWord: (word: string) => void;
 }
 
-const WordInputField: FC<WordInputProps> = ({ onAddWord }) => {
+const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
   const [inputText, setInputText] = React.useState<string>("");
-
-  const inputRef = React.useRef(null);
 
   const onSubmitEditing = (newText: string) => {
     onAddWord(newText);
     setInputText("");
-    inputRef.current.focus();
   };
 
   const { inputStyle, inputAddButton, inputField, inputContainer } =
@@ -59,15 +58,16 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord }) => {
         />
       </View>
 
-      <View style={inputAddButton}>
-        <Button
-          disabled={inputText === ""}
-          title={"add"}
-          onPress={() => {
-            if (inputText != "") onSubmitEditing(inputText);
-          }}
-        ></Button>
-      </View>
+      <TouchableOpacity
+        onPress={() => {
+          if (inputText != "") onSubmitEditing(inputText);
+        }}
+        disabled={inputText === ""}
+      >
+        <View style={{ alignItems: "center" }}>
+          <MaterialIcons name="add" size={32} color="black" />
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };
