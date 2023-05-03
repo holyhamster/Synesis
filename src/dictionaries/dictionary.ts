@@ -1,6 +1,6 @@
 import SynDefinition from "../synDefinition";
 
-export interface Dictionary {
-  GetSynonyms: (string: string) => Promise<SynDefinition>;
+export default interface Dictionary {
+  GetSynonyms: (string: string) => Promise<string[][][]>;
   Check: () => boolean;
 }
