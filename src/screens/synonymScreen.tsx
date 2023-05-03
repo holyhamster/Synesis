@@ -1,5 +1,7 @@
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useEffect } from "react";
+import { MaterialIcons } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   StyleSheet,
   ToastAndroid,
@@ -7,34 +9,45 @@ import {
   ScrollView,
   Button,
   ActivityIndicator,
+  TouchableOpacity,
+  TextInput,
+  Text,
 } from "react-native";
-
-import { SafeAreaView } from "react-native-safe-area-context";
 
 import WordInputField from "../wordInputField";
 import Merriam from "../dictionaries/meriam/meriam";
 import SynonymListView from "../synonymListView";
-import SynDefinition, { GetNextColor } from "../synDefinition";
+import SynDefinition, { BuildPlus } from "../synDefinition";
+import DataEntry from "../dataEntry";
 
 const SynonymScreen = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
+
+  const [entries, setEntries] = React.useState<DataEntry[]>([]);
+
+  useEffect(() => setEntries(BuildPlus(synArray)), [synArray]);
+
   const dict = React.useRef(new Merriam(process.env.REACT_APP_API_KEY));
 
   const addWord = async (word: string) => {
     if (synArray.findIndex((definiton) => definiton.Word == word) >= 0) return;
-    const newSyn = new SynDefinition(word);
+
+    const newSyn = new SynDefinition(
+      word,
+      synArray.map((syn) => syn.Color)
+    );
     setSynArray((previous) => [...previous, newSyn]);
 
-    try {
-      const response = await dict.current.GetSynonyms(word);
-      newSyn.Color = GetNextColor(synArray);
-      newSyn.Sets = response.Sets; //TODO: update when more data than just sets
+    const onSucces = () => {
       setSynArray((previous) => Array.from(previous));
-    } catch (error) {
-      ToastAndroid.show(error.message, ToastAndroid.LONG);
-      newSyn.Sets = [];
+    };
+
+    const onFail = (message) => {
+      ToastAndroid.show(message, ToastAndroid.LONG);
       setSynArray((previous) => Array.from(previous));
-    }
+    };
+
+    newSyn.Load(dict.current, onSucces, onFail);
   };
 
   const removeSyn = (Word: string) => {
@@ -43,53 +56,75 @@ const SynonymScreen = ({ navigation }) => {
     setSynArray([...synArray.slice(0, index), ...synArray.slice(index + 1)]);
   };
 
+  const inputRef = React.useRef<TextInput>();
+
+  const synonymList =
+    synArray.length == 0 ? (
+      <TouchableOpacity onPress={() => inputRef.current.focus()}>
+        <Text>Enter a word to get synonyms!</Text>
+      </TouchableOpacity>
+    ) : (
+      <ScrollView
+        style={{ flex: 1 }}
+        fadingEdgeLength={1}
+        invertStickyHeaders={true}
+        contentContainerStyle={{ paddingVertical: 100 }}
+      >
+        <SynonymListView entries={entries} addWord={addWord} />
+      </ScrollView>
+    );
+
+  const selectedContainer = (
+    <View style={styles.selectedContainer}>
+      <View style={styles.selectedList}>
+        {synArray.map((synDef, index) => (
+          <Button
+            key={index}
+            title={synDef.Word}
+            color={synDef.Color}
+            onPress={() => removeSyn(synDef.Word)}
+          />
+        ))}
+      </View>
+      <View style={styles.selectedClearButton}>
+        <TouchableOpacity
+          onPress={() => {
+            setSynArray([]);
+          }}
+          disabled={synArray.length == 0}
+        >
+          <View style={{ alignItems: "center" }}>
+            <MaterialIcons name="clear" size={32} color="black" />
+          </View>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
-      <View style={styles.synonyms}>
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingVertical: 100 }}
-        >
-          <SynonymListView synArray={synArray} addWord={addWord} />
-        </ScrollView>
-      </View>
+
+      <View style={styles.synonyms}>{synonymList}</View>
+
       <View style={styles.menuButton}>
         <Button
           title={"Options"}
           onPress={() => navigation.navigate("Options")}
         ></Button>
       </View>
+
       <View style={styles.connectionIndicator}>
         <ActivityIndicator
           animating={synArray.find((synDef) => !synDef.WasFetched) != null}
           size="large"
         />
       </View>
-      <View style={styles.selectedContainer}>
-        <View style={styles.selectedList}>
-          {synArray.map((synDef, index) => (
-            <Button
-              key={index}
-              title={synDef.Word}
-              color={synDef.Color}
-              onPress={() => removeSyn(synDef.Word)}
-            />
-          ))}
-        </View>
-        <View style={styles.selectedClearButton}>
-          <Button
-            title={"clear"}
-            onPress={() => {
-              setSynArray([]);
-            }}
-            disabled={synArray.length == 0}
-          ></Button>
-        </View>
-      </View>
+
+      {selectedContainer}
 
       <View style={styles.inputContainer}>
-        <WordInputField onAddWord={addWord} />
+        <WordInputField inputRef={inputRef} onAddWord={addWord} />
       </View>
     </SafeAreaView>
   );
@@ -105,6 +140,7 @@ const styles = StyleSheet.create({
     backgroundColor: "blue",
     zIndex: 1,
   },
+
   container: {
     flex: 1,
     backgroundColor: "white",
@@ -117,6 +153,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     flexDirection: "row",
   },
+
   menuButton: {
     position: "absolute",
     right: 10,
@@ -124,16 +161,19 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     zIndex: 1,
   },
+
   selectedContainer: {
     paddingVertical: 5,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "orange",
   },
+
   selectedClearButton: {
     flex: 1,
     backgroundColor: "yellow",
   },
+
   selectedList: {
     flex: 4,
     flexDirection: "row",
@@ -146,9 +186,11 @@ const styles = StyleSheet.create({
     gap: 5,
     backgroundColor: "yellow",
   },
+
   synonyms: {
     flex: 10,
-    backgroundColor: "violet",
+    justifyContent: "center",
+    alignItems: "center",
     zIndex: 1,
   },
 });
