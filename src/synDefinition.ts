@@ -1,16 +1,40 @@
+import { EmptyColor, SynDefColor, getFreeColor } from "./colors";
+import DataEntry from "./dataEntry";
+import Dictionary from "./dictionaries/dictionary";
+
 //A tree of synonyms for a word
 export default class SynDefinition {
-  public Color: string = "#7A7B7A";
-  constructor(public Word: string) {}
-  private sets: string[][] = [];
-  get Sets(): string[][] {
-    return this.sets;
+  constructor(public Word: string, takenColors: SynDefColor[] = []) {
+    this.color = getFreeColor(takenColors);
   }
-  set Sets(value: string[][]) {
+
+  private total: string[] = [];
+
+  public sets: string[][][] = [];
+  private set(value: string[][][]) {
+    this.total = this.sets.flat(3);
     this.wasFetched = true;
     this.sets = value;
     this.isEmpty = this.sets.length == 0;
-    this.Color = this.isEmpty ? "#63666A" : this.Color;
+  }
+
+  private color: SynDefColor;
+  public get Color(): SynDefColor {
+    return this.IsEmpty ? EmptyColor : this.color;
+  }
+
+  public async Load(
+    dictionary: Dictionary,
+    onSuccess = () => {},
+    onError = (error: string) => {}
+  ) {
+    try {
+      this.set(await dictionary.GetSynonyms(this.Word));
+      onSuccess();
+    } catch (error) {
+      this.set([]);
+      onError(error.message);
+    }
   }
 
   private isEmpty: boolean = false;
@@ -24,32 +48,83 @@ export default class SynDefinition {
   }
 }
 
-export function GetNextColor(synArray: SynDefinition[]): string {
-  //TODO: make an array of premade colors, make this function pick a non-busy one
-  let randomNumber = Math.floor(Math.random() * 16777216);
-  let hexString = randomNumber.toString(16).padStart(6, "0");
-  return "#" + hexString;
-}
+export function BuildPlus(syns: SynDefinition[]): DataEntry[] {
+  const result: Map<string, DataEntry> = new Map();
 
-interface dataEntry {
-  value: string;
-  color: string;
-  count: number;
-}
+  // make a flat array with all synonyms minus exceptions,
+  for (let syn of syns) {
+    for (let definition of syn.sets) {
+      for (let synonymList of definition) {
+        for (let word of synonymList) {
+          if (result.has(word)) continue;
+          result.set(word, {
+            value: word,
+            count: 1,
+            color: syn.Color,
+          } as DataEntry);
+        }
+      }
+    }
+  }
 
-/* Takes an array of SynDefinitions, returns a flat array of all synonyms in {value, color, count} format */
-export function BuildData(syns: SynDefinition[]): dataEntry[] {
-  const result: Map<string, dataEntry> = new Map();
-  syns.forEach((synDef) => {
-    synDef.Sets.forEach((setArray) => {
-      setArray.forEach((synonym) => {
-        let data = result.get(synonym);
-        if (!data) {
-          data = { value: synonym, color: synDef.Color, count: 1 };
-          result.set(synonym, data);
-        } else data.count += 1;
-      });
-    });
+  for (let i = 0; i < syns.length; i++) {
+    for (let j = i + 1; j < syns.length; j++) {
+      for (let iDefinition of syns[i].sets) {
+        for (let jDefinition of syns[j].sets) {
+          weightDefinitions(
+            result,
+            syns[i].Word,
+            iDefinition,
+            syns[j].Word,
+            jDefinition
+          );
+        }
+      }
+    }
+  }
+
+  syns.forEach((syns) => result.delete(syns.Word));
+  return Array.from(result.values()).sort(function (a, b) {
+    return a.count - b.count;
   });
-  return Array.from(result.values());
+}
+
+function weightDefinitions(
+  map: Map<string, DataEntry>,
+  iWord: string,
+  iDefinition: string[][],
+  jWord: string,
+  jDefinition: string[][]
+) {
+  for (let iSynonymList of iDefinition) {
+    if (iSynonymList.includes(jWord)) {
+      changeWeight(map, iDefinition, 1);
+      changeWeight(map, iSynonymList, 1);
+    }
+
+    for (let jSynonymList of jDefinition) {
+      if (jSynonymList.includes(iWord)) {
+        changeWeight(map, jDefinition, 1);
+        changeWeight(map, jSynonymList, 1);
+      }
+      for (let word of iSynonymList) {
+        if (jSynonymList.includes(word)) {
+          changeWeight(map, iDefinition, 1);
+          changeWeight(map, jDefinition, 1);
+          changeWeight(map, iSynonymList, 1);
+          changeWeight(map, jSynonymList, 1);
+        }
+      }
+    }
+  }
+}
+function changeWeight(
+  map: Map<string, DataEntry>,
+  array: any[],
+  change: number
+) {
+  const flat: string[] = array.flat(4);
+  flat.forEach((word) => {
+    if (map.has(word)) map.get(word).count += change;
+  });
 }
