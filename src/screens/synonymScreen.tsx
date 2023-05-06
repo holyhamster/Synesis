@@ -15,10 +15,11 @@ import {
 } from "react-native";
 
 import WordInputField from "../wordInputField";
-import Merriam from "../dictionaries/meriam/meriam";
 import SynonymListView from "../synonymListView";
 import SynDefinition, { BuildPlus } from "../synDefinition";
 import DataEntry from "../dataEntry";
+import Dictionary, { GetCurrentDictionary } from "../dictionaries/dictionary";
+import { useFocusEffect } from "@react-navigation/native";
 
 const SynonymScreen = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
@@ -27,7 +28,12 @@ const SynonymScreen = ({ navigation }) => {
 
   useEffect(() => setEntries(BuildPlus(synArray)), [synArray]);
 
-  const dict = React.useRef(new Merriam(process.env.REACT_APP_API_KEY));
+  const [dict, setDict] = React.useState<Dictionary>();
+  useFocusEffect(
+    React.useCallback(() => {
+      GetCurrentDictionary().then((result) => setDict(result));
+    }, [])
+  );
 
   const addWord = async (word: string) => {
     if (synArray.findIndex((definiton) => definiton.Word == word) >= 0) return;
@@ -47,10 +53,10 @@ const SynonymScreen = ({ navigation }) => {
       setSynArray((previous) => Array.from(previous));
     };
 
-    newSyn.Load(dict.current, onSucces, onFail);
+    newSyn.Load(dict, onSucces, onFail);
   };
 
-  const removeSyn = (Word: string) => {
+  const removeWord = (Word: string) => {
     const index = synArray.findIndex((synDef) => synDef.Word == Word);
     if (index < 0) return;
     setSynArray([...synArray.slice(0, index), ...synArray.slice(index + 1)]);
@@ -82,7 +88,7 @@ const SynonymScreen = ({ navigation }) => {
             key={index}
             title={synDef.Word}
             color={synDef.Color}
-            onPress={() => removeSyn(synDef.Word)}
+            onPress={() => removeWord(synDef.Word)}
           />
         ))}
       </View>
