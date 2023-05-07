@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   TextInput,
   Text,
+  DeviceEventEmitter,
 } from "react-native";
 
 import WordInputField from "./wordInputField";
@@ -23,11 +24,27 @@ import Dictionary, {
 } from "../../dictionaries/dictionary";
 import { useFocusEffect } from "@react-navigation/native";
 import { HomeProps } from "../../navigation";
+import { EventsEnum } from "../../events";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
 
   const [entries, setEntries] = React.useState<DataEntry[]>([]);
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      EventsEnum.ApiChanged,
+      () => {
+        GetCurrentDictionary().then((result) => {
+          const words = synArray.map((syn) => syn.Word);
+
+          useEffect(() => words.forEach((word) => addWord(word)), []);
+          setSynArray([]);
+        });
+      }
+    );
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => setEntries(BuildPlus(synArray)), [synArray]);
 

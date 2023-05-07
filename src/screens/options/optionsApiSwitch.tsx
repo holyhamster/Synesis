@@ -13,7 +13,8 @@ import {
 } from "../../dictionaries/dictionary";
 import React, { FC } from "react";
 import { InputModalEventParams } from "../inputModal";
-import { OptionsProps } from "../../../App";
+import { OptionsProps } from "../../navigation";
+import { EventsEnum } from "../../events";
 
 interface OptionsApiSwitchProps {
   navigation: OptionsProps["navigation"];
@@ -22,8 +23,6 @@ interface OptionsApiSwitchProps {
 //List of touchable controls to switch API, pops up InputModal for API key
 
 export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
-  const apiChangeEvent = "api-key-change";
-
   const [currentDictionaryType, setCurrentDictionaryType] =
     React.useState<DictionaryType>();
 
@@ -38,6 +37,7 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
       const dictionaryType = varName as DictionaryType;
 
       if (apiKey) {
+        DeviceEventEmitter.emit(EventsEnum.ApiChanged);
         SaveCurrentDictionaryType(dictionaryType as DictionaryType, apiKey);
         setCurrentDictionaryType(dictionaryType as DictionaryType);
       } else {
@@ -49,7 +49,7 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
     };
 
     const subscription = DeviceEventEmitter.addListener(
-      apiChangeEvent,
+      EventsEnum.ApiKeyEntered,
       callback
     );
     return () => subscription.remove();
@@ -79,7 +79,7 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
     navigation.navigate("InputModal", {
       varName: dictionaryType,
       varHint: dictionaryType,
-      eventName: apiChangeEvent,
+      eventName: EventsEnum.ApiKeyEntered,
     });
   };
 
