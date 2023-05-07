@@ -4,7 +4,7 @@ import { DictionaryType } from "./dictionary";
 //securely handles setting and getting api keys
 export default class Keys {
   static Set(keyType: DictionaryType, key: string) {
-    SecureStore.setItemAsync(secureKeyName(keyType), key);
+    return SecureStore.setItemAsync(secureKeyName(keyType), key);
   }
 
   static async Get(keyType: DictionaryType) {
