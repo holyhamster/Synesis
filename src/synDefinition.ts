@@ -133,5 +133,8 @@ function changeWeight(
 }
 
 export function NormalizeWord(word: string) {
-  return word.replace(/[^a-z0-9\s-]/gi, "").trim();
+  return word
+    .replace(/[^a-z0-9\s-]/gi, "")
+    .trim()
+    .toLowerCase();
 }
