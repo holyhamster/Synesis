@@ -4,7 +4,9 @@ import Dictionary from "./dictionaries/dictionary";
 
 //A tree of synonyms for a word
 export default class SynDefinition {
-  constructor(public Word: string, takenColors: SynDefColor[] = []) {
+  public Word: string;
+  constructor(word: string, takenColors: SynDefColor[] = []) {
+    this.Word = NormalizeWord(word);
     this.color = getFreeColor(takenColors);
   }
 
@@ -128,4 +130,8 @@ function changeWeight(
   flat.forEach((word) => {
     if (map.has(word)) map.get(word).count += change;
   });
+}
+
+export function NormalizeWord(word: string) {
+  return word.replace(/[^a-z0-9\s-]/gi, "").trim();
 }

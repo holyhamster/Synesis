@@ -39,12 +39,17 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   );
 
   const addWord = async (word: string) => {
-    if (synArray.findIndex((definiton) => definiton.Word == word) >= 0) return;
-
     const newSyn = new SynDefinition(
       word,
       synArray.map((syn) => syn.Color)
     );
+
+    if (
+      newSyn.Word == "" ||
+      synArray.findIndex((definiton) => definiton.Word == newSyn.Word) >= 0
+    )
+      return;
+
     setSynArray((previous) => [...previous, newSyn]);
 
     const onSucces = () => {
