@@ -16,7 +16,6 @@ export enum DictionaryType {
 
 export async function GetCurrentDictionary(): Promise<Dictionary> {
   const apiType = (await LoadCurrentDictionaryType()) || DictionaryType.Self;
-
   const key =
     apiType == DictionaryType.Self
       ? process.env.REACT_APP_API_KEY
@@ -33,9 +32,13 @@ export async function LoadCurrentDictionaryType() {
   return (result as DictionaryType) || DictionaryType.Self;
 }
 
-export function SaveCurrentDictionaryType(type: DictionaryType, key?: string) {
-  AsyncStorage.setItem(apiNameKey, type);
+export async function SaveCurrentDictionaryType(
+  type: DictionaryType,
+  key?: string
+) {
+  const promises: Promise<void>[] = [];
+  promises.push(AsyncStorage.setItem(apiNameKey, type));
+  if (type != DictionaryType.Self && key) promises.push(Keys.Set(type, key));
 
-  if (type == DictionaryType.Self) return;
-  if (key) Keys.Set(type, key);
+  return Promise.all(promises);
 }
