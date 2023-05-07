@@ -10,7 +10,6 @@ export class MerriamParser {
 
     try {
       const parsed = JSON.parse(response);
-
       const sets: string[][][] = [];
       if (parsed.length == 0 || parsed[0].meta == undefined)
         throw new Error(APIErrorEnum.NoWord);
@@ -25,7 +24,6 @@ export class MerriamParser {
             );
           sets.push(array);
         });
-
       return { type: "success", data: sets };
     } catch (error) {
       return { type: "error", errorMessage: error.message };

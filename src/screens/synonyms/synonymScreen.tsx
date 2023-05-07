@@ -22,53 +22,48 @@ import DataEntry from "./dataEntry";
 import Dictionary, {
   GetCurrentDictionary,
 } from "../../dictionaries/dictionary";
-import { useFocusEffect } from "@react-navigation/native";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
 
-  const [entries, setEntries] = React.useState<DataEntry[]>([]);
-
+  //instance of API dictionary, update existing synonym list if API changes
+  const [currentDict, setCurrentDict] = React.useState<Dictionary>();
   useEffect(() => {
+    console.log("ya1");
+    synArray.forEach((syn) => loadSyn(syn));
+  }, [currentDict]);
+
+  //load default dictionary on loading component, add listener to changeApi event
+  useEffect(() => {
+    console.log("ya2");
+    GetCurrentDictionary().then((dict) => setCurrentDict(dict));
     const subscription = DeviceEventEmitter.addListener(
       EventsEnum.ApiChanged,
-      () => {
-        GetCurrentDictionary().then((result) => {
-          const words = synArray.map((syn) => syn.Word);
-
-          useEffect(() => words.forEach((word) => addWord(word)), []);
-          setSynArray([]);
-        });
-      }
+      () => GetCurrentDictionary().then((dict) => setCurrentDict(dict))
     );
     return () => subscription.remove();
   }, []);
 
+  //entries are an array of prepared data for synonym list, updaded when synArray states change
+  const [entries, setEntries] = React.useState<DataEntry[]>([]);
   useEffect(() => setEntries(BuildPlus(synArray)), [synArray]);
 
-  const [dict, setDict] = React.useState<Dictionary>();
-  useFocusEffect(
-    React.useCallback(() => {
-      GetCurrentDictionary().then((result) => setDict(result));
-    }, [])
-  );
-
-  const addWord = async (word: string) => {
+  const getSyn = (word: string) => {
     const newSyn = new SynDefinition(
       word,
       synArray.map((syn) => syn.Color)
     );
-
     if (
       newSyn.Word == "" ||
       synArray.findIndex((definiton) => definiton.Word == newSyn.Word) >= 0
     )
-      return;
+      return undefined;
+    return newSyn;
+  };
 
-    setSynArray((previous) => [...previous, newSyn]);
-
+  const loadSyn = (syn: SynDefinition) => {
     const onSucces = () => {
       setSynArray((previous) => Array.from(previous));
     };
@@ -78,7 +73,14 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
       setSynArray((previous) => Array.from(previous));
     };
 
-    newSyn.Load(dict, onSucces, onFail);
+    syn.Load(currentDict, onSucces, onFail);
+  };
+
+  const addWord = async (word: string) => {
+    const newSyn = getSyn(word);
+    if (!newSyn) return;
+    setSynArray((previous) => [...previous, newSyn]);
+    loadSyn(newSyn);
   };
 
   const removeWord = (Word: string) => {

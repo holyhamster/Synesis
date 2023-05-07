@@ -9,11 +9,10 @@ interface SynonymListProps {
 
 const SynonymListView: FC<SynonymListProps> = ({ entries, addWord }) => {
   const [extended, setExtended] = React.useState<Boolean>(false);
-
   return (
     <TagCloud
       minSize={20}
-      maxSize={35}
+      maxSize={50}
       tags={entries}
       shuffle={false}
       onPress={(tag) => addWord(tag.value)}
