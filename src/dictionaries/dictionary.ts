@@ -1,10 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Merriam from "./meriam/meriam";
 
-import Keys from "../keys";
+import Keys from "./keys";
+import { APIResponse } from "./apiResponse";
 
 export default interface Dictionary {
-  GetSynonyms: (string: string) => Promise<string[][][]>;
+  GetSynonyms: (string: string) => Promise<APIResponse>;
   Check: () => boolean;
 }
 
