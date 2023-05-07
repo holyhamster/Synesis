@@ -10,10 +10,10 @@ import {
   DictionaryType,
   LoadCurrentDictionaryType,
   SaveCurrentDictionaryType,
-} from "./dictionaries/dictionary";
+} from "../../dictionaries/dictionary";
 import React, { FC } from "react";
-import { InputModalEventParams } from "./screens/inputModal";
-import { OptionsProps } from "../App";
+import { InputModalEventParams } from "../inputModal";
+import { OptionsProps } from "../../../App";
 
 interface OptionsApiSwitchProps {
   navigation: OptionsProps["navigation"];

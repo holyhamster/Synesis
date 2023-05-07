@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
+import React, { FC, useEffect } from "react";
 import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -14,14 +14,17 @@ import {
   Text,
 } from "react-native";
 
-import WordInputField from "../wordInputField";
-import SynonymListView from "../synonymListView";
-import SynDefinition, { BuildPlus } from "../synDefinition";
-import DataEntry from "../dataEntry";
-import Dictionary, { GetCurrentDictionary } from "../dictionaries/dictionary";
+import WordInputField from "./wordInputField";
+import SynonymListView from "./synonymListView";
+import SynDefinition, { BuildPlus } from "../../synDefinition";
+import DataEntry from "./dataEntry";
+import Dictionary, {
+  GetCurrentDictionary,
+} from "../../dictionaries/dictionary";
 import { useFocusEffect } from "@react-navigation/native";
+import { HomeProps } from "../../navigation";
 
-const SynonymScreen = ({ navigation }) => {
+const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
 
   const [entries, setEntries] = React.useState<DataEntry[]>([]);
@@ -143,7 +146,6 @@ const styles = StyleSheet.create({
     top: 40,
     width: 50,
     height: 50,
-    backgroundColor: "blue",
     zIndex: 1,
   },
 

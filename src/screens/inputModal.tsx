@@ -7,7 +7,7 @@ import {
   View,
 } from "react-native";
 
-import { InputModalProps } from "../../App";
+import { InputModalProps } from "../navigation";
 
 export interface InputModalEventParams {
   varName: string;

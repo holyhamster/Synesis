@@ -1,5 +1,5 @@
 import { EmptyColor, SynDefColor, getFreeColor } from "./colors";
-import DataEntry from "./dataEntry";
+import DataEntry from "./screens/synonyms/dataEntry";
 import Dictionary from "./dictionaries/dictionary";
 
 //A tree of synonyms for a word
@@ -28,12 +28,13 @@ export default class SynDefinition {
     onSuccess = () => {},
     onError = (error: string) => {}
   ) {
-    try {
-      this.set(await dictionary.GetSynonyms(this.Word));
+    const response = await dictionary.GetSynonyms(this.Word);
+    if (response.type == "success") {
+      this.set(response.data);
       onSuccess();
-    } catch (error) {
+    } else {
       this.set([]);
-      onError(error.message);
+      onError(response.errorMessage);
     }
   }
 

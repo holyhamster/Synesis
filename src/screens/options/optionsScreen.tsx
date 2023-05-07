@@ -2,8 +2,8 @@ import { View, Text, StyleSheet } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Accordion from "react-native-collapsible/Accordion";
 import React, { FC } from "react";
-import OptionsApiSwitch from "../optionsApiSwitch";
-import { OptionsProps } from "../../App";
+import OptionsApiSwitch from "./optionsApiSwitch";
+import { OptionsProps } from "../../navigation";
 
 const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
   enum AccordionEnum {

@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Button, StyleSheet, View } from "react-native";
-import SynDefinition from "./synDefinition";
+import SynDefinition from "../../synDefinition";
 
 interface WordListProps {
   synArray: SynDefinition[];

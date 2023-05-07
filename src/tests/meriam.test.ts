@@ -1,3 +1,5 @@
+import { APIErrorEnum } from "../dictionaries/apiResponse";
+import Merriam from "../dictionaries/meriam/meriam";
 import { MerriamFetcher } from "../dictionaries/meriam/meriamFetcher";
 import { MerriamParser } from "../dictionaries/meriam/meriamParser";
 
@@ -12,21 +14,32 @@ test.skip("Merriam API network response", async () => {
   expect(response).toBe(meriamMockResponse);
 });
 
-test("Merriam API parsing", () => {
-  var synDef = MerriamParser.ParseData(meriamMockResponse, "points of view");
-  expect(synDef.flat(3).length).toBeGreaterThan(0);
+test("API key rejection", async () => {
+  var wrongAPIdict = new Merriam("1234-1234");
+  const wrongAPIresponse = await wrongAPIdict.GetSynonyms("points_of_vew");
+  expect(
+    wrongAPIresponse.type == "error" ? wrongAPIresponse.errorMessage : ""
+  ).toBe(APIErrorEnum.WrongAPIkey);
+});
+
+test("API parsing", () => {
+  const response = MerriamParser.ParseData(
+    meriamMockResponse,
+    "points of view"
+  );
+  expect(
+    response.type == "success" ? response.data.flat(3).length : 0
+  ).toBeGreaterThan(0);
 });
 
 const meriamMockMisspeled = `["band","waned","want","hand","wound","land","bond","sand","wont","wad","wend","wan","wind","wane","windy","ward","went","bland","brand","grand"]`;
-test("Merriam API parsing, autocorrect", () => {
-  expect(() =>
-    MerriamParser.ParseData(meriamMockMisspeled, "wand")
-  ).toThrowError("no word in the database");
-});
-
-const emptyResponse = `[]`;
-test("Merriam API parsing, emptyResponse", () => {
-  expect(() =>
-    MerriamParser.ParseData(emptyResponse, "fasdnssobkjfd")
-  ).toThrowError("no word in the database");
+test("API parsing, misspelled responses", () => {
+  const response = MerriamParser.ParseData(meriamMockMisspeled, "wand");
+  expect(response.type == "error" ? response.errorMessage : undefined).toBe(
+    APIErrorEnum.NoWord
+  );
+  const emptyResponse = MerriamParser.ParseData(`[]`, "fasdnssobkjfd");
+  expect(
+    emptyResponse.type == "error" ? emptyResponse.errorMessage : undefined
+  ).toBe(APIErrorEnum.NoWord);
 });

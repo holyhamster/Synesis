@@ -5,27 +5,13 @@ import {
   createNativeStackNavigator,
 } from "@react-navigation/native-stack";
 
-import SynonymScreen from "./src/screens/synonymScreen";
-import OptionsScreen from "./src/screens/optionsScreen";
+import SynonymScreen from "./src/screens/synonyms/synonymScreen";
+import OptionsScreen from "./src/screens/options/optionsScreen";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import InputModal from "./src/screens/inputModal";
+import { CreateStack } from "./src/navigation";
 
-export type StackParamList = {
-  Home: undefined;
-  Options: undefined;
-  InputModal: {
-    eventName: string;
-    varName: string;
-    varHint: string | undefined;
-  };
-};
-export type OptionsProps = NativeStackScreenProps<StackParamList, "Options">;
-export type InputModalProps = NativeStackScreenProps<
-  StackParamList,
-  "InputModal"
->;
-
-const Stack = createNativeStackNavigator<StackParamList>();
+const Stack = CreateStack();
 
 export default function App() {
   return (

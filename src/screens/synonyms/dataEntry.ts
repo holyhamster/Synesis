@@ -1,4 +1,4 @@
-import { SynDefColor } from "./colors";
+import { SynDefColor } from "../../colors";
 
 //single word in a synonym cloud
 export default interface DataEntry {
