@@ -35,11 +35,12 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
     const callback = (params: InputModalEventParams) => {
       const { varName, varValue: apiKey } = params;
       const dictionaryType = varName as DictionaryType;
-
-      if (apiKey) {
-        DeviceEventEmitter.emit(EventsEnum.ApiChanged);
-        SaveCurrentDictionaryType(dictionaryType as DictionaryType, apiKey);
+      if (currentDictionaryType != dictionaryType || apiKey) {
         setCurrentDictionaryType(dictionaryType as DictionaryType);
+        SaveCurrentDictionaryType(
+          dictionaryType as DictionaryType,
+          apiKey
+        ).then(() => DeviceEventEmitter.emit(EventsEnum.ApiChanged));
       } else {
         ToastAndroid.show(
           `Please provide an API key to use ${dictionaryType} dictionary`,
@@ -71,7 +72,9 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
     if (dictionaryType == DictionaryType.Self) {
       if (!state) {
         setCurrentDictionaryType(dictionaryType);
-        SaveCurrentDictionaryType(dictionaryType);
+        SaveCurrentDictionaryType(dictionaryType).then(() =>
+          DeviceEventEmitter.emit(EventsEnum.ApiChanged)
+        );
       }
       return;
     }
