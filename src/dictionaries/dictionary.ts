@@ -1,44 +1,41 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Merriam from "./meriam/meriam";
-
-import Keys from "./keys";
 import { APIResponse } from "./apiResponse";
 
-export default interface Dictionary {
-  GetSynonyms: (string: string) => Promise<APIResponse>;
-  Check: () => boolean;
+//fetches and parses a word
+export default class Dictionary {
+  constructor(
+    private fetcher: Fetcher,
+    private parser: Parser,
+    private normalizer?: Normalizer
+  ) {}
+
+  GetSynonyms(word: string) {
+    word = this.normalizer ? this.normalizer.NormalizeWord(word) : word;
+    return this.fetcher.FetchData(word).then((data) => {
+      return this.parser.ParseData(data, word);
+    });
+  }
+}
+
+export interface Fetcher {
+  FetchData(word: string): Promise<string>;
+}
+
+export interface Parser {
+  ParseData(response: string, targetWord: string): APIResponse;
+}
+
+export interface Normalizer {
+  NormalizeWord(word: string): string;
 }
 
 export enum DictionaryType {
   Self = "Default",
   Meriam = "MeriamWebster",
+  Datamuse = "Datamuse",
 }
 
-export async function GetCurrentDictionary(): Promise<Dictionary> {
-  const apiType = (await LoadCurrentDictionaryType()) || DictionaryType.Self;
-  const key =
-    apiType == DictionaryType.Self
-      ? process.env.REACT_APP_API_KEY
-      : await Keys.Get(apiType);
-  switch (apiType) {
-    default:
-      return new Merriam(key);
-  }
-}
-
-const apiNameKey = "current_api_name";
-export async function LoadCurrentDictionaryType() {
-  const result = await AsyncStorage.getItem(apiNameKey);
-  return (result as DictionaryType) || DictionaryType.Self;
-}
-
-export async function SaveCurrentDictionaryType(
-  type: DictionaryType,
-  key?: string
-) {
-  const promises: Promise<void>[] = [];
-  promises.push(AsyncStorage.setItem(apiNameKey, type));
-  if (type != DictionaryType.Self && key) promises.push(Keys.Set(type, key));
-
-  return Promise.all(promises);
-}
+export const DictionaryKeyRequirement = {
+  [DictionaryType.Self]: false,
+  [DictionaryType.Meriam]: true,
+  [DictionaryType.Datamuse]: false,
+};

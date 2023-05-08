@@ -1,7 +1,7 @@
 import { EmptyColor } from "../colors";
 import { APIResponse } from "../dictionaries/apiResponse";
 import Dictionary from "../dictionaries/dictionary";
-import Merriam from "../dictionaries/meriam/meriam";
+import Merriam from "../dictionaries/meriam";
 import SynDefinition, { BuildPlus } from "../synDefinition";
 const mockSynSets = new Map<string, string[][][]>();
 

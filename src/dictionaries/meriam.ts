@@ -1,7 +1,12 @@
-import { APIResponse, APIErrorEnum } from "../apiResponse";
+import { APIErrorEnum, APIResponse } from "./apiResponse";
+import Dictionary, { Fetcher, Parser } from "./dictionary";
 
-export class MerriamParser {
-  public static ParseData(response: string, targetWord: string): APIResponse {
+export default function BuildMeriam(apiKey: string): Dictionary {
+  return new Dictionary(new MeriamFetcher(apiKey), new MeriamParser());
+}
+
+export class MeriamParser implements Parser {
+  public ParseData(response: string, targetWord: string): APIResponse {
     if (detectWrongKey(response))
       return {
         type: "error",
@@ -28,6 +33,24 @@ export class MerriamParser {
     } catch (error) {
       return { type: "error", errorMessage: error.message };
     }
+  }
+}
+
+export class MeriamFetcher implements Fetcher {
+  constructor(private apiKey: string) {}
+  public async FetchData(word: string): Promise<string> {
+    const response = await fetch(
+      `https://www.dictionaryapi.com/api/v3/references/thesaurus/json/${word}?key=${this.apiKey}`
+    );
+
+    if (!response.ok)
+      throw new Error(`Something went wrong: ${response.status}`);
+
+    const text = await response.text();
+
+    if (!text) throw new Error("Empty response");
+
+    return text;
   }
 }
 

@@ -19,11 +19,10 @@ import WordInputField from "./wordInputField";
 import SynonymListView from "./synonymListView";
 import SynDefinition, { BuildPlus } from "../../synDefinition";
 import DataEntry from "./dataEntry";
-import Dictionary, {
-  GetCurrentDictionary,
-} from "../../dictionaries/dictionary";
+import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
+import { GetCurrentDictionary } from "../../dictionaries/dictionaryStorage";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
@@ -31,13 +30,11 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   //instance of API dictionary, update existing synonym list if API changes
   const [currentDict, setCurrentDict] = React.useState<Dictionary>();
   useEffect(() => {
-    console.log("ya1");
     synArray.forEach((syn) => loadSyn(syn));
   }, [currentDict]);
 
   //load default dictionary on loading component, add listener to changeApi event
   useEffect(() => {
-    console.log("ya2");
     GetCurrentDictionary().then((dict) => setCurrentDict(dict));
     const subscription = DeviceEventEmitter.addListener(
       EventsEnum.ApiChanged,

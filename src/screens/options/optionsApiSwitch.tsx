@@ -7,14 +7,17 @@ import {
   View,
 } from "react-native";
 import {
+  DictionaryKeyRequirement,
   DictionaryType,
-  LoadCurrentDictionaryType,
-  SaveCurrentDictionaryType,
 } from "../../dictionaries/dictionary";
 import React, { FC } from "react";
 import { InputModalEventParams } from "../inputModal";
 import { OptionsProps } from "../../navigation";
 import { EventsEnum } from "../../events";
+import {
+  LoadCurrentDictionaryType,
+  SaveCurrentDictionaryType,
+} from "../../dictionaries/dictionaryStorage";
 
 interface OptionsApiSwitchProps {
   navigation: OptionsProps["navigation"];
@@ -65,25 +68,26 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
   });
 
   const onPressAPIToggle = (dictionaryType: DictionaryType) => {
-    const { state } = apiTogglesData.find(
+    const { state: enabled } = apiTogglesData.find(
       (apiToggle) => apiToggle.name == dictionaryType
     );
 
-    if (dictionaryType == DictionaryType.Self) {
-      if (!state) {
-        setCurrentDictionaryType(dictionaryType);
-        SaveCurrentDictionaryType(dictionaryType).then(() =>
-          DeviceEventEmitter.emit(EventsEnum.ApiChanged)
-        );
-      }
+    if (DictionaryKeyRequirement[dictionaryType]) {
+      navigation.navigate("InputModal", {
+        varName: dictionaryType,
+        varHint: dictionaryType,
+        eventName: EventsEnum.ApiKeyEntered,
+      });
+
       return;
     }
 
-    navigation.navigate("InputModal", {
-      varName: dictionaryType,
-      varHint: dictionaryType,
-      eventName: EventsEnum.ApiKeyEntered,
-    });
+    if (!enabled) {
+      setCurrentDictionaryType(dictionaryType);
+      SaveCurrentDictionaryType(dictionaryType).then(() =>
+        DeviceEventEmitter.emit(EventsEnum.ApiChanged)
+      );
+    }
   };
 
   return (
