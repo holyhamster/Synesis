@@ -1,7 +1,7 @@
 import { EmptyColor } from "../colors";
 import { APIResponse } from "../dictionaries/apiResponse";
 import Dictionary from "../dictionaries/dictionary";
-import Merriam from "../dictionaries/meriam";
+import BuildMeriam from "../dictionaries/meriam";
 import SynDefinition, { BuildPlus } from "../synDefinition";
 const mockSynSets = new Map<string, string[][][]>();
 
@@ -37,15 +37,9 @@ mockSynSets.set("test2", [
   ],
 ]);
 
-const mockGetSynonyms = jest.fn(
-  async (string: string) =>
-    ({ data: mockSynSets.get(string), type: "success" } as APIResponse)
-);
-
-const mockDictionary = {
-  GetSynonyms: (string) => mockGetSynonyms(string),
-  Check: () => true,
-} as Dictionary;
+const mockDictionary = {} as Dictionary;
+mockDictionary.GetSynonyms = async (string: string) =>
+  ({ data: mockSynSets.get(string), type: "success" } as APIResponse);
 
 test("synonym initiation", async () => {
   const word = "hand";
@@ -70,7 +64,7 @@ test("synonym crossing", async () => {
 });
 
 test.skip("live test", async () => {
-  var dict = new Merriam(process.env.REACT_APP_API_KEY);
+  var dict = BuildMeriam(process.env.REACT_APP_API_KEY);
   const syn1 = new SynDefinition("sun");
   const syn2 = new SynDefinition("glory");
   await syn1.Load(dict);
