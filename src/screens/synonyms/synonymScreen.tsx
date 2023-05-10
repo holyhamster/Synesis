@@ -1,6 +1,5 @@
 import { StatusBar } from "expo-status-bar";
 import React, { FC, useEffect } from "react";
-import { MaterialIcons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   StyleSheet,
@@ -9,9 +8,7 @@ import {
   ScrollView,
   Button,
   ActivityIndicator,
-  TouchableOpacity,
   TextInput,
-  Text,
   DeviceEventEmitter,
 } from "react-native";
 
@@ -23,18 +20,33 @@ import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
 import { GetCurrentDictionary } from "../../dictionaries/dictionaryStorage";
+import HintView from "./hintsView";
+import {
+  GetString,
+  SetString,
+  StringTypesEnum,
+} from "../../dictionaries/storage";
+import WordListView from "./wordListView";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
 
   //instance of API dictionary, update existing synonym list if API changes
   const [currentDict, setCurrentDict] = React.useState<Dictionary>();
+
   useEffect(() => {
     synArray.forEach((syn) => loadSyn(syn));
   }, [currentDict]);
 
+  const [showingHint, setShowingHint] = React.useState(-1);
   //load default dictionary on loading component, add listener to changeApi event
   useEffect(() => {
+    GetString(StringTypesEnum.WasLaunched).then((value) => {
+      if (value) return;
+      SetString(StringTypesEnum.WasLaunched, "yes");
+      setShowingHint(0);
+    });
+
     GetCurrentDictionary().then((dict) => setCurrentDict(dict));
     const subscription = DeviceEventEmitter.addListener(
       EventsEnum.ApiChanged,
@@ -61,10 +73,7 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   };
 
   const loadSyn = (syn: SynDefinition) => {
-    const onSucces = () => {
-      setSynArray((previous) => Array.from(previous));
-    };
-
+    const onSucces = () => setSynArray((previous) => Array.from(previous));
     const onFail = (message) => {
       ToastAndroid.show(message, ToastAndroid.LONG);
       setSynArray((previous) => Array.from(previous));
@@ -88,54 +97,20 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
 
   const inputRef = React.useRef<TextInput>();
 
-  const synonymList =
-    synArray.length == 0 ? (
-      <TouchableOpacity onPress={() => inputRef.current.focus()}>
-        <Text>Enter a word to get synonyms!</Text>
-      </TouchableOpacity>
-    ) : (
-      <ScrollView
-        style={{ flex: 1 }}
-        fadingEdgeLength={1}
-        invertStickyHeaders={true}
-        contentContainerStyle={{ paddingVertical: 100 }}
-      >
-        <SynonymListView entries={entries} addWord={addWord} />
-      </ScrollView>
-    );
-
-  const selectedContainer = (
-    <View style={styles.selectedContainer}>
-      <View style={styles.selectedList}>
-        {synArray.map((synDef, index) => (
-          <Button
-            key={index}
-            title={synDef.Word}
-            color={synDef.Color}
-            onPress={() => removeWord(synDef.Word)}
-          />
-        ))}
-      </View>
-      <View style={styles.selectedClearButton}>
-        <TouchableOpacity
-          onPress={() => {
-            setSynArray([]);
-          }}
-          disabled={synArray.length == 0}
-        >
-          <View style={{ alignItems: "center" }}>
-            <MaterialIcons name="clear" size={32} color="black" />
-          </View>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
 
-      <View style={styles.synonyms}>{synonymList}</View>
+      <View style={styles.synonyms}>
+        <ScrollView
+          style={{ flex: 1 }}
+          fadingEdgeLength={1}
+          invertStickyHeaders={true}
+          contentContainerStyle={{ paddingVertical: 100 }}
+        >
+          <SynonymListView entries={entries} addWord={addWord} />
+        </ScrollView>
+      </View>
 
       <View style={styles.menuButton}>
         <Button
@@ -144,6 +119,14 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
         ></Button>
       </View>
 
+      {showingHint == 2 && (
+        <HintView
+          style={{ ...styles.hint, top: 80, left: "5%", maxWidth: "90%" }}
+          hintText="Select different API if you're not happy with the results"
+          onPress={() => setShowingHint((previous) => (previous += 1))}
+        />
+      )}
+
       <View style={styles.connectionIndicator}>
         <ActivityIndicator
           animating={synArray.find((synDef) => !synDef.WasFetched) != null}
@@ -151,11 +134,36 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
         />
       </View>
 
-      {selectedContainer}
+      <WordListView
+        synArray={synArray}
+        onClearButton={() => setSynArray([])}
+        onWordPress={(word) => removeWord(word)}
+      />
+
+      {showingHint == 1 && synArray.length > 0 && (
+        <HintView
+          style={{
+            ...styles.hint,
+            bottom: 120,
+            right: "5%",
+            maxWidth: "70%",
+          }}
+          hintText="Add/remove words to widen/remove the search!"
+          onPress={() => setShowingHint((previous) => (previous += 1))}
+        />
+      )}
 
       <View style={styles.inputContainer}>
         <WordInputField inputRef={inputRef} onAddWord={addWord} />
       </View>
+
+      {showingHint == 0 && (
+        <HintView
+          style={{ ...styles.hint, bottom: 120, left: "5%", maxWidth: "90%" }}
+          hintText="Enter a word you're looking into"
+          onPress={() => setShowingHint((previous) => (previous += 1))}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -169,20 +177,21 @@ const styles = StyleSheet.create({
     height: 50,
     zIndex: 1,
   },
-
   container: {
     flex: 1,
     backgroundColor: "white",
     justifyContent: "center",
     alignContent: "center",
   },
-
+  hint: {
+    zIndex: 2,
+    position: "absolute",
+  },
   inputContainer: {
     backgroundColor: "pink",
     marginVertical: 10,
     flexDirection: "row",
   },
-
   menuButton: {
     position: "absolute",
     right: 10,
@@ -190,32 +199,6 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     zIndex: 1,
   },
-
-  selectedContainer: {
-    paddingVertical: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "orange",
-  },
-
-  selectedClearButton: {
-    flex: 1,
-    backgroundColor: "yellow",
-  },
-
-  selectedList: {
-    flex: 4,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    flexWrap: "wrap",
-    alignSelf: "stretch",
-    alignContent: "center",
-    alignItems: "center",
-    marginHorizontal: 5,
-    gap: 5,
-    backgroundColor: "yellow",
-  },
-
   synonyms: {
     flex: 10,
     justifyContent: "center",
