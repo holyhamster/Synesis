@@ -1,5 +1,3 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
 import BuildDatamuse from "./datamuse";
 import BuildMeriam from "./meriam";
 import Keys from "./keys";
@@ -7,6 +5,7 @@ import Dictionary, {
   DictionaryKeyRequirement,
   DictionaryType,
 } from "./dictionary";
+import { GetString, SetString } from "./storage";
 
 //Getters and setters for dictionary information in local storage
 
@@ -29,7 +28,7 @@ export async function GetCurrentDictionary(): Promise<Dictionary> {
 
 const apiNameKey = "current_api_name";
 export async function LoadCurrentDictionaryType() {
-  const result = await AsyncStorage.getItem(apiNameKey);
+  const result = await GetString(apiNameKey);
   return (result as DictionaryType) || DictionaryType.Self;
 }
 
@@ -38,7 +37,7 @@ export async function SaveCurrentDictionaryType(
   key?: string
 ) {
   const promises: Promise<void>[] = [];
-  promises.push(AsyncStorage.setItem(apiNameKey, type));
+  promises.push(SetString(apiNameKey, type));
   if (type != DictionaryType.Self && key) promises.push(Keys.Set(type, key));
 
   return Promise.all(promises);
