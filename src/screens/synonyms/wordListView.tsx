@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import SynDefinition from "../../synDefinition";
+import SynDefinition from "./data/synDefinition";
 
 interface WordListProps {
   synArray: SynDefinition[];

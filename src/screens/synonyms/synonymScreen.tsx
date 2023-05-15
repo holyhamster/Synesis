@@ -14,8 +14,8 @@ import {
 
 import WordInputField from "./wordInputField";
 import SynonymListView from "./synonymListView";
-import SynDefinition, { BuildPlus } from "../../synDefinition";
-import DataEntry from "./dataEntry";
+import SynDefinition from "./data/synDefinition";
+import DataEntryClass, { Cross } from "./data/dataEntry";
 import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
@@ -56,8 +56,12 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   }, []);
 
   //entries are an array of prepared data for synonym list, updaded when synArray states change
-  const [entries, setEntries] = React.useState<DataEntry[]>([]);
-  useEffect(() => setEntries(BuildPlus(synArray)), [synArray]);
+  const [entries, setEntries] = React.useState<DataEntryClass[]>([]);
+  const colorMap = new Map<string, string>();
+  synArray.forEach((synDef) => colorMap.set(synDef.Word, synDef.Color));
+  useEffect(() => {
+    setEntries(Cross(synArray));
+  }, [synArray]);
 
   const getSyn = (word: string) => {
     const newSyn = new SynDefinition(
@@ -108,7 +112,11 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
           invertStickyHeaders={true}
           contentContainerStyle={{ paddingVertical: 100 }}
         >
-          <SynonymListView entries={entries} addWord={addWord} />
+          <SynonymListView
+            entries={entries}
+            colorMap={colorMap}
+            addWord={addWord}
+          />
         </ScrollView>
       </View>
 

@@ -2,7 +2,9 @@ import { EmptyColor } from "../colors";
 import { APIResponse } from "../dictionaries/apiResponse";
 import Dictionary from "../dictionaries/dictionary";
 import BuildMeriam from "../dictionaries/meriam";
-import SynDefinition, { BuildPlus } from "../synDefinition";
+import SynDefinition, {
+  BuildPlus,
+} from "../screens/synonyms/data/synDefinition";
 const mockSynSets = new Map<string, string[][][]>();
 
 mockSynSets.set("hand", [
