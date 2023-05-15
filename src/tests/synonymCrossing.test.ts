@@ -2,9 +2,8 @@ import { EmptyColor } from "../colors";
 import { APIResponse } from "../dictionaries/apiResponse";
 import Dictionary from "../dictionaries/dictionary";
 import BuildMeriam from "../dictionaries/meriam";
-import SynDefinition, {
-  BuildPlus,
-} from "../screens/synonyms/data/synDefinition";
+import { Cross } from "../screens/synonyms/data/dataEntry";
+import SynDefinition from "../screens/synonyms/data/synDefinition";
 const mockSynSets = new Map<string, string[][][]>();
 
 mockSynSets.set("hand", [
@@ -60,9 +59,9 @@ test("synonym crossing", async () => {
   let synDef2 = new SynDefinition("reach");
   await synDef2.Load(mockDictionary);
 
-  const results = BuildPlus([synDef1, synDef2]);
+  const results = Cross([synDef1, synDef2]);
   //expect(results).toBe(1);
-  expect(results[results.length - 1].value).toBe("pass");
+  expect(results[results.length - 1].name).toBe("pass");
 });
 
 test.skip("live test", async () => {
@@ -72,8 +71,7 @@ test.skip("live test", async () => {
   await syn1.Load(dict);
   await syn2.Load(dict);
 
-  const results = BuildPlus([syn1, syn2]);
-  console.log(results);
+  const results = Cross([syn1, syn2]);
   //expect(results).toBe(1);
-  expect(results[results.length - 1].value).toBe("pass");
+  expect(results[results.length - 1].name).toBe("pass");
 });

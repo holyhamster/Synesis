@@ -3,9 +3,8 @@ import BuildDatamuse, {
   DatamuseParser,
   DatamuseFetcher,
 } from "../dictionaries/datamuse";
-import SynDefinition, {
-  BuildPlus,
-} from "../screens/synonyms/data/synDefinition";
+import { Cross } from "../screens/synonyms/data/dataEntry";
+import SynDefinition from "../screens/synonyms/data/synDefinition";
 
 const mockresponse = `[{"word":"list","score":5054},{"word":"lean","score":3439},{"word":"propensity","score":2071},{"word":"tilt","score":1472},{"word":"proclivity","score":1374},{"word":"inclination","score":1268},{"word":"tendency","score":1137},{"word":"inclined","score":903},{"word":"tilted","score":363},{"word":"canted","score":298},{"word":"atilt","score":277},{"word":"tipped","score":231},{"word":"unerect","score":29}]`;
 test("Datamuse fetch test", async () => {
@@ -35,5 +34,5 @@ test("datamuse crossing", async () => {
 
   await synDef1.Load(datamuseDictionary);
   await synDef2.Load(datamuseDictionary);
-  expect(BuildPlus([synDef1, synDef2])).toBeTruthy();
+  expect(Cross([synDef1, synDef2])).toBeTruthy();
 });

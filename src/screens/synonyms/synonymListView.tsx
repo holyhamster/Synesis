@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import SynonymWord from "./synonymWord";
-import { ColorNormal } from "./data/colorNormal";
+import ColorNormal from "./data/colorNormal";
 
 interface SynonymListProps {
   entries: DataEntryClass[];

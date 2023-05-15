@@ -1,11 +1,12 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React, { FC } from "react";
 import { Animated, StyleProp, StyleSheet, Text, TextStyle } from "react-native";
+import ColorNormal from "./data/colorNormal";
 
 interface SynonymWordProps {
   style?: StyleProp<TextStyle>;
   word: string;
-  colorNormal: { color: string; value: number }[];
+  colorNormal: ColorNormal;
 }
 const SynonymWord: FC<SynonymWordProps> = ({ style, word, colorNormal }) => {
   const [gradient, setGradient] = React.useState(
@@ -33,20 +34,19 @@ const SynonymWord: FC<SynonymWordProps> = ({ style, word, colorNormal }) => {
     };
   }, []);
 
-  if (gradient?.colors.length && gradient?.locations.length)
-    return (
-      <Animated.View style={{ opacity: animFaded }}>
-        <LinearGradient
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[style]}
-          colors={gradient.colors}
-          locations={gradient.locations}
-        >
-          <Text style={styles.word}>{word}</Text>
-        </LinearGradient>
-      </Animated.View>
-    );
+  return (
+    <Animated.View style={{ opacity: animFaded }}>
+      <LinearGradient
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={[style]}
+        colors={gradient.colors}
+        locations={gradient.locations}
+      >
+        <Text style={styles.word}>{word}</Text>
+      </LinearGradient>
+    </Animated.View>
+  );
 };
 
 const styles = StyleSheet.create({ word: { margin: 5 } });
@@ -64,14 +64,6 @@ function colorMapToLinearArray(
     gradientLocations.push(i);
   });
   return { colors: gradientColors, locations: gradientLocations };
-}
-
-function compareMaps<T1, T2>(map1: Map<T1, T2>, map2: Map<T1, T2>) {
-  if (map1?.size != map2?.size) return false;
-  map1.forEach((value, key) => {
-    if (map2.get(key) != value) return false;
-  });
-  return true;
 }
 
 export default SynonymWord;

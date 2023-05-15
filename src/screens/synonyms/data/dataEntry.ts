@@ -1,5 +1,5 @@
 import SynDefinition from "./synDefinition";
-import { WordNormal } from "./colorNormal";
+import WordNormal from "./wordNormal";
 
 //single word in a synonym cloud
 export default class DataEntryClass {

@@ -1,7 +1,11 @@
-//
+import WordNormal from "./wordNormal";
+
 // [{color:"red", value:.5}, {color:"blue", value:.5}]
-export class ColorNormal extends Array<{ color: string; value: number }> {
-  readonly isValid: boolean;
+export default class ColorNormal extends Array<{
+  color: string;
+  value: number;
+}> {
+  isValid: boolean;
   constructor(wordNormal: WordNormal, colorMap: Map<string, string>) {
     let validated = wordNormal.length > 0 && colorMap.size > 0;
     const array = wordNormal.map((val) => {
@@ -11,13 +15,5 @@ export class ColorNormal extends Array<{ color: string; value: number }> {
     });
     super(...array);
     this.isValid = validated;
-  }
-
-  validate() {}
-}
-// [{word:"vague", value:.5}, {word:"undefined", value:.5}]
-export class WordNormal extends Array<{ word: string; value: number }> {
-  constructor(copy?: WordNormal) {
-    super(...(copy || []));
   }
 }
