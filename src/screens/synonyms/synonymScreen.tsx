@@ -20,32 +20,35 @@ import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
 import { GetCurrentDictionary } from "../../dictionaries/dictionaryStorage";
-import HintView from "./hintsView";
 import {
-  GetString,
-  SetString,
+  GetStringFromStorage,
+  SetStringInStorage,
   StringTypesEnum,
 } from "../../dictionaries/storage";
 import WordListView from "./wordListView";
+import HintOverlay from "./hintOverlay";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
+  const [showingHint, setShowingHint] = React.useState(-1);
+  const checkIfHintsRequired = () => {
+    GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
+      if (value) return;
+      SetStringInStorage(StringTypesEnum.WasLaunched, "yes");
+      setShowingHint(0);
+    });
+  };
+
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
 
   //instance of API dictionary, update existing synonym list if API changes
   const [currentDict, setCurrentDict] = React.useState<Dictionary>();
-
   useEffect(() => {
     synArray.forEach((syn) => loadSyn(syn));
   }, [currentDict]);
 
-  const [showingHint, setShowingHint] = React.useState(-1);
   //load default dictionary on loading component, add listener to changeApi event
   useEffect(() => {
-    GetString(StringTypesEnum.WasLaunched).then((value) => {
-      if (value) return;
-      SetString(StringTypesEnum.WasLaunched, "yes");
-      setShowingHint(0);
-    });
+    checkIfHintsRequired();
 
     GetCurrentDictionary().then((dict) => setCurrentDict(dict));
     const subscription = DeviceEventEmitter.addListener(
@@ -57,6 +60,7 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
 
   //entries are an array of prepared data for synonym list, updaded when synArray states change
   const [entries, setEntries] = React.useState<DataEntryClass[]>([]);
+
   const colorMap = new Map<string, string>();
   synArray.forEach((synDef) => colorMap.set(synDef.Word, synDef.Color));
   useEffect(() => {
@@ -105,6 +109,12 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
 
+      <HintOverlay
+        onHintPress={() => setShowingHint((previous) => (previous += 1))}
+        currentHintID={showingHint}
+        synonymsExist={synArray.length > 0}
+      />
+
       <View style={styles.synonyms}>
         <ScrollView
           style={{ flex: 1 }}
@@ -127,14 +137,6 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
         ></Button>
       </View>
 
-      {showingHint == 2 && (
-        <HintView
-          style={{ ...styles.hint, top: 80, left: "5%", maxWidth: "90%" }}
-          hintText="Select different API if you're not happy with the results"
-          onPress={() => setShowingHint((previous) => (previous += 1))}
-        />
-      )}
-
       <View style={styles.connectionIndicator}>
         <ActivityIndicator
           animating={synArray.find((synDef) => !synDef.WasFetched) != null}
@@ -148,30 +150,9 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
         onWordPress={(word) => removeWord(word)}
       />
 
-      {showingHint == 1 && synArray.length > 0 && (
-        <HintView
-          style={{
-            ...styles.hint,
-            bottom: 120,
-            right: "5%",
-            maxWidth: "70%",
-          }}
-          hintText="Add/remove words to widen/remove the search!"
-          onPress={() => setShowingHint((previous) => (previous += 1))}
-        />
-      )}
-
       <View style={styles.inputContainer}>
         <WordInputField inputRef={inputRef} onAddWord={addWord} />
       </View>
-
-      {showingHint == 0 && (
-        <HintView
-          style={{ ...styles.hint, bottom: 120, left: "5%", maxWidth: "90%" }}
-          hintText="Enter a word you're looking into"
-          onPress={() => setShowingHint((previous) => (previous += 1))}
-        />
-      )}
     </SafeAreaView>
   );
 };
@@ -185,21 +166,20 @@ const styles = StyleSheet.create({
     height: 50,
     zIndex: 1,
   },
+
   container: {
     flex: 1,
     backgroundColor: "white",
     justifyContent: "center",
     alignContent: "center",
   },
-  hint: {
-    zIndex: 2,
-    position: "absolute",
-  },
+
   inputContainer: {
     backgroundColor: "pink",
     marginVertical: 10,
     flexDirection: "row",
   },
+
   menuButton: {
     position: "absolute",
     right: 10,
@@ -207,6 +187,7 @@ const styles = StyleSheet.create({
     backgroundColor: "green",
     zIndex: 1,
   },
+
   synonyms: {
     flex: 10,
     justifyContent: "center",
