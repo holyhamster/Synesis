@@ -5,7 +5,7 @@ import Dictionary, {
   DictionaryKeyRequirement,
   DictionaryType,
 } from "./dictionary";
-import { GetString, SetString } from "./storage";
+import { GetStringFromStorage, SetStringInStorage } from "./storage";
 
 //Getters and setters for dictionary information in local storage
 
@@ -28,7 +28,7 @@ export async function GetCurrentDictionary(): Promise<Dictionary> {
 
 const apiNameKey = "current_api_name";
 export async function LoadCurrentDictionaryType() {
-  const result = await GetString(apiNameKey);
+  const result = await GetStringFromStorage(apiNameKey);
   return (result as DictionaryType) || DictionaryType.Self;
 }
 
@@ -37,7 +37,7 @@ export async function SaveCurrentDictionaryType(
   key?: string
 ) {
   const promises: Promise<void>[] = [];
-  promises.push(SetString(apiNameKey, type));
+  promises.push(SetStringInStorage(apiNameKey, type));
   if (type != DictionaryType.Self && key) promises.push(Keys.Set(type, key));
 
   return Promise.all(promises);
