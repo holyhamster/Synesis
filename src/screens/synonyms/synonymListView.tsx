@@ -33,8 +33,8 @@ const SynonymListView: FC<SynonymListProps> = ({
   return (
     <View style={{ ...styles.list }}>
       {entries.map((entry) => {
-        const normal = new ColorNormal(entry.GetWordNormal(), colorMap);
-        if (normal.isValid)
+        const colorNormal = new ColorNormal(entry.GetWordNormal(), colorMap);
+        if (colorNormal.isValid)
           return (
             <TouchableOpacity
               key={entry.name}
@@ -43,7 +43,7 @@ const SynonymListView: FC<SynonymListProps> = ({
               <SynonymWord
                 word={entry.name}
                 style={{ fontSize: 20 }}
-                colorNormal={normal}
+                colorNormal={colorNormal}
               />
             </TouchableOpacity>
           );
