@@ -16,4 +16,13 @@ export default class ColorNormal extends Array<{
     super(...array);
     this.isValid = validated;
   }
+
+  isEqual(normal: ColorNormal) {
+    if (this.length != normal.length) return false;
+    for (let i = 0; i < this.length; i++) {
+      if (this[i].color != normal[i].color || this[i].value != normal[i].value)
+        return false;
+    }
+    return true;
+  }
 }
