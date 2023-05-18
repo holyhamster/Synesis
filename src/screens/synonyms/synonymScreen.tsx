@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar";
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useMemo, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   StyleSheet,
@@ -30,26 +30,33 @@ import HintOverlay from "./hintOverlay";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [showingHint, setShowingHint] = React.useState(-1);
-  const checkIfHintsRequired = () => {
+  useEffect(() => {
     GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
       if (value) return;
       SetStringInStorage(StringTypesEnum.WasLaunched, "yes");
       setShowingHint(0);
     });
-  };
-
+  }, []);
+  console.log("screen render");
   const [synArray, setSynArray] = React.useState<SynDefinition[]>([]);
+  const forceSynArrayUpdate = useCallback(
+    () => setSynArray((previous) => Array.from(previous)),
+    [setSynArray]
+  );
 
   //instance of API dictionary, update existing synonym list if API changes
   const [currentDict, setCurrentDict] = React.useState<Dictionary>();
+
   useEffect(() => {
-    synArray.forEach((syn) => loadSyn(syn));
+    synArray.forEach((syn) =>
+      loadSyn(syn, currentDict, () =>
+        setSynArray((previous) => Array.from(previous))
+      )
+    );
   }, [currentDict]);
 
   //load default dictionary on loading component, add listener to changeApi event
   useEffect(() => {
-    checkIfHintsRequired();
-
     GetCurrentDictionary().then((dict) => setCurrentDict(dict));
     const subscription = DeviceEventEmitter.addListener(
       EventsEnum.ApiChanged,
@@ -59,49 +66,45 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   }, []);
 
   //entries are an array of prepared data for synonym list, updaded when synArray states change
-  const [entries, setEntries] = React.useState<DataEntryClass[]>([]);
-
-  const colorMap = new Map<string, string>();
-  synArray.forEach((synDef) => colorMap.set(synDef.Word, synDef.Color));
-  useEffect(() => {
-    setEntries(Cross(synArray));
+  const entries = useMemo(() => {
+    const map = new Map<string, DataEntryClass>();
+    Cross(synArray).forEach((entry) => map.set(entry.name, entry));
+    return map;
   }, [synArray]);
 
-  const getSyn = (word: string) => {
-    const newSyn = new SynDefinition(
-      word,
-      synArray.map((syn) => syn.Color)
-    );
-    if (
-      newSyn.Word == "" ||
-      synArray.findIndex((definiton) => definiton.Word == newSyn.Word) >= 0
-    )
-      return undefined;
-    return newSyn;
-  };
+  const colorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    synArray.forEach((synDef) => map.set(synDef.Word, synDef.Color));
+    return map;
+  }, [synArray]);
 
-  const loadSyn = (syn: SynDefinition) => {
-    const onSucces = () => setSynArray((previous) => Array.from(previous));
-    const onFail = (message) => {
-      ToastAndroid.show(message, ToastAndroid.LONG);
-      setSynArray((previous) => Array.from(previous));
-    };
+  const addWord = useCallback(
+    (word: string) => {
+      const newSyn = new SynDefinition(
+        word,
+        synArray.map((syn) => syn.Color)
+      );
 
-    syn.Load(currentDict, onSucces, onFail);
-  };
+      if (
+        newSyn &&
+        newSyn.Word != "" &&
+        synArray.findIndex((definiton) => definiton.Word == newSyn.Word) == -1
+      ) {
+        setSynArray((previous) => [...previous, newSyn]);
+        loadSyn(newSyn, currentDict, forceSynArrayUpdate);
+      }
+    },
+    [synArray, setSynArray, currentDict, forceSynArrayUpdate]
+  );
 
-  const addWord = async (word: string) => {
-    const newSyn = getSyn(word);
-    if (!newSyn) return;
-    setSynArray((previous) => [...previous, newSyn]);
-    loadSyn(newSyn);
-  };
-
-  const removeWord = (Word: string) => {
-    const index = synArray.findIndex((synDef) => synDef.Word == Word);
-    if (index < 0) return;
-    setSynArray([...synArray.slice(0, index), ...synArray.slice(index + 1)]);
-  };
+  const removeWord = useCallback(
+    (Word: string) => {
+      const index = synArray.findIndex((synDef) => synDef.Word == Word);
+      if (index < 0) return;
+      setSynArray([...synArray.slice(0, index), ...synArray.slice(index + 1)]);
+    },
+    [synArray, setSynArray]
+  );
 
   const inputRef = React.useRef<TextInput>();
 
@@ -195,5 +198,18 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 });
+
+async function loadSyn(
+  syn: SynDefinition,
+  currentDict: Dictionary,
+  updateCallback: () => void
+) {
+  const onFail = (message) => {
+    ToastAndroid.show(message, ToastAndroid.LONG);
+    updateCallback();
+  };
+
+  return syn.Load(currentDict, updateCallback, onFail);
+}
 
 export default SynonymScreen;
