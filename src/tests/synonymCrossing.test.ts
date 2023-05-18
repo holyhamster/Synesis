@@ -1,5 +1,6 @@
 import { EmptyColor } from "../colors";
 import { APIResponse } from "../dictionaries/apiResponse";
+import BuildDatamuse from "../dictionaries/datamuse";
 import Dictionary from "../dictionaries/dictionary";
 import BuildMeriam from "../dictionaries/meriam";
 import { Cross } from "../screens/synonyms/data/dataEntry";
@@ -64,14 +65,15 @@ test("synonym crossing", async () => {
   expect(results[results.length - 1].name).toBe("pass");
 });
 
-test.skip("live test", async () => {
-  var dict = BuildMeriam(process.env.REACT_APP_API_KEY);
-  const syn1 = new SynDefinition("sun");
-  const syn2 = new SynDefinition("glory");
+test("live test", async () => {
+  var dict = BuildDatamuse();
+  const syn1 = new SynDefinition("sunday");
+  const syn2 = new SynDefinition("sun");
   await syn1.Load(dict);
   await syn2.Load(dict);
 
   const results = Cross([syn1, syn2]);
-  //expect(results).toBe(1);
-  expect(results[results.length - 1].name).toBe("pass");
+  expect(syn1).toBe(1);
+  console.log(results);
+  expect(results).toBe("pass");
 });
