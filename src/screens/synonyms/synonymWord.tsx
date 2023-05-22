@@ -26,6 +26,7 @@ interface SynonymWordProps {
   colorNormal: ColorNormal;
   onPress: () => void;
 }
+
 const SynonymWord: FC<SynonymWordProps> = memo(
   ({ colorNormal, word, onPress }) => {
     const colorsCurrent = useRef<string[]>([]);
@@ -42,7 +43,7 @@ const SynonymWord: FC<SynonymWordProps> = memo(
         posStart.current,
         posTarget.current
       );
-      //console.log(posTarget.value);
+
       while (
         posStart.current.length > 1 &&
         posStart.current[posStart.current.length - 2] === 1
@@ -85,7 +86,6 @@ const SynonymWord: FC<SynonymWordProps> = memo(
 
     //hook calculated on UI thread
     const derivedPos = useDerivedValue(() => {
-      //console.log(posTarget.current);
       const val = lerpArray(
         posProgress.value,
         posStart.current,
@@ -100,44 +100,47 @@ const SynonymWord: FC<SynonymWordProps> = memo(
       posValue.current = derivedPos.value;
     }, posProgress);
 
-    const width = styles.word.fontSize * Math.max(word.length, 1) - 40;
-    const height = 25;
+    const rectWidth = styles.word.fontSize * Math.max(word.length, 1) - 40;
+    const rectHeight = 25;
 
     const wasPressed = useRef(false);
-    const touchHandler = useTouchHandler({
-      onStart: () => {
-        wasPressed.current = true;
+    const touchHandler = useTouchHandler(
+      {
+        onStart: () => {
+          wasPressed.current = true;
+        },
+        onEnd: (touchInfo) => {
+          if (
+            wasPressed.current &&
+            touchInfo.x < rectWidth &&
+            touchInfo.x > 0 &&
+            touchInfo.y > 0 &&
+            touchInfo.y < rectHeight
+          )
+            onPress();
+          wasPressed.current = false;
+        },
       },
-      onEnd: (touchInfo) => {
-        if (
-          wasPressed.current &&
-          touchInfo.x < width &&
-          touchInfo.x > 0 &&
-          touchInfo.y > 0 &&
-          touchInfo.y < height
-        )
-          onPress();
-        wasPressed.current = false;
-      },
-    });
+      [onPress]
+    );
 
     return (
       <View
         style={{
           ...styles.view,
-          height: height,
-          width: width,
+          height: rectHeight,
+          width: rectWidth,
           backgroundColor: colorNormal?.[0]?.color || "white",
         }}
       >
         <Canvas
           onTouch={touchHandler}
-          style={{ flex: 1, width: width, height: height }}
+          style={{ flex: 1, width: rectWidth, height: rectHeight }}
         >
-          <Rect x={0} y={0} width={width} height={height}>
+          <Rect x={0} y={0} width={rectWidth} height={rectHeight}>
             <LinearGradient
               start={vec(0, 0)}
-              end={vec(width, 0)}
+              end={vec(rectWidth, 0)}
               colors={colorsCurrent.current}
               positions={posValue}
             />
