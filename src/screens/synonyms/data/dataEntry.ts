@@ -4,7 +4,7 @@ import WordNormal from "./wordNormal";
 //single word in a synonym cloud
 export default class DataEntryClass {
   connections: Map<string, number> = new Map();
-  sum: number = 1;
+  sum: number = 0;
   public constructor(public name: string) {}
 
   public addConnection(word: string, strength: number = 1) {
@@ -20,7 +20,10 @@ export default class DataEntryClass {
     if (!this.vectorCache) {
       this.vectorCache = new WordNormal();
       this.connections.forEach((val, key) =>
-        this.vectorCache.push({ word: key, value: val / this.sum })
+        this.vectorCache.push({
+          word: key,
+          value: parseFloat((val / this.sum).toFixed(3)),
+        })
       );
     }
     return new WordNormal(this.vectorCache);

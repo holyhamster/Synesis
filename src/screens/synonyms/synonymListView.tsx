@@ -1,15 +1,13 @@
-import React, { FC, useMemo, useCallback, useRef, useEffect } from "react";
+import React, { FC, useMemo, useCallback, useRef } from "react";
 import DataEntryClass from "./data/dataEntry";
-import {
-  LayoutAnimation,
-  Platform,
-  StyleSheet,
-  TouchableOpacity,
-  UIManager,
-  View,
-} from "react-native";
-import SynonymWord from "./synonymWord";
+import { StyleSheet } from "react-native";
 import ColorNormal from "./data/colorNormal";
+import SynonymWord from "./synonymWord";
+import {
+  Transition,
+  Transitioning,
+  TransitioningView,
+} from "react-native-reanimated";
 
 interface SynonymListProps {
   entries: Map<string, DataEntryClass>;
@@ -17,26 +15,14 @@ interface SynonymListProps {
   addWord: (newWord: string) => void;
 }
 
-if (
-  Platform.OS === "android" &&
-  UIManager.setLayoutAnimationEnabledExperimental
-) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
 const SynonymListView: FC<SynonymListProps> = ({
   entries,
   colorMap,
   addWord,
 }) => {
-  console.log("list render");
-  console.log(entries);
-  console.log(colorMap);
-
-  //const [cachedEntries, setCachedEntries] = React.useState(entries);
-
+  //console.log("list render");
   const colorNormals = useRef(new Map<string, ColorNormal>());
-  useEffect;
+
   useMemo(() => {
     //colorNormals.current.clear();
     entries.forEach((entry, name) => {
@@ -49,28 +35,39 @@ const SynonymListView: FC<SynonymListProps> = ({
 
   const onWordPress = useCallback(
     (name) => () => {
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.spring);
+      //LayoutAnimation.configureNext(LayoutAnimation.Presets.linear);
       addWord(name);
     },
     [addWord]
   );
 
+  const ref = useRef<TransitioningView>();
+  ref.current?.animateNextTransition();
   return (
-    <View style={{ ...styles.list }}>
+    <Transitioning.View
+      ref={ref}
+      style={{ ...styles.list }}
+      transition={transition}
+    >
       {Array.from(entries.values()).map((entry) => {
         const colorNormal = colorNormals.current.get(entry.name);
+        const onPress = onWordPress(entry.name);
+        //console.log(colorNormal);
         if (!colorNormal?.isValid) return <></>;
+        //return <></>;
         return (
-          <TouchableOpacity key={entry.name} onPress={onWordPress(entry.name)}>
-            <SynonymWord
-              word={entry.name}
-              style={styles.word}
-              colorNormal={colorNormal}
-            />
-          </TouchableOpacity>
+          <SynonymWord
+            key={entry.name}
+            word={entry.name}
+            colorNormal={colorNormal}
+            onPress={() => {
+              onPress();
+              if (ref.current) ref.current.animateNextTransition();
+            }}
+          />
         );
       })}
-    </View>
+    </Transitioning.View>
   );
 };
 
@@ -86,22 +83,11 @@ const styles = StyleSheet.create({
   },
 });
 
-function getFontSizer(sizes: number[]) {
-  const minFontSize = 20;
-  const maxFontSize = 40;
-  let smallest = Math.min(...sizes);
-  let largest = Math.max(...sizes);
-  if (smallest === largest) {
-    return () => {
-      Math.round((maxFontSize + minFontSize) / 2);
-    };
-  }
-  return (size: number) => {
-    return Math.round(
-      minFontSize +
-        ((maxFontSize - minFontSize) * (size - smallest)) / (largest - smallest)
-    );
-  };
-}
+const transition = (
+  <Transition.Together>
+    <Transition.In type="fade" durationMs={500} />
+    <Transition.Out type="fade" durationMs={500} />
+  </Transition.Together>
+);
 
 export default SynonymListView;

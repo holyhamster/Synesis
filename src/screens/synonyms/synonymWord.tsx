@@ -1,48 +1,186 @@
-import { LinearGradient } from "expo-linear-gradient";
-import React, { FC, memo } from "react";
-import { Animated, StyleProp, StyleSheet, Text, TextStyle } from "react-native";
-import ColorNormal from "./data/colorNormal";
-import ColorGradient from "./data/colorGradient";
-import * as Animatable from "react-native-animatable";
+import React, { FC, memo, useMemo, useRef } from "react";
+import {
+  LinearGradient,
+  Canvas,
+  Rect,
+  vec,
+  mix,
+  useSharedValueEffect,
+  useValue,
+  useTouchHandler,
+} from "@shopify/react-native-skia";
+import { StyleProp, View, Text, TextStyle, StyleSheet } from "react-native";
+import {
+  runOnJS,
+  useDerivedValue,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
+import ColorNormal from "./data/colorNormal";
+
+// Create an animated component from LinearGradient
 interface SynonymWordProps {
   style?: StyleProp<TextStyle>;
   word: string;
   colorNormal: ColorNormal;
+  onPress: () => void;
 }
 const SynonymWord: FC<SynonymWordProps> = memo(
-  ({ style, word, colorNormal }) => {
-    //console.log(`${word}-word render`);
-    const [gradient, setGradient] = React.useState(
-      new ColorGradient(colorNormal)
-    );
+  ({ colorNormal, word, onPress }) => {
+    const colorsCurrent = useRef<string[]>([]);
+    const colorsTarget = useRef<string[]>([]);
 
-    React.useEffect(() => {
-      setGradient(new ColorGradient(colorNormal));
+    //gradient positions are interpolated between start and end with the help of Progress value
+    const posStart = useRef<number[]>([]);
+    const posTarget = useRef<number[]>([]);
+    const posProgress = useSharedValue(1);
+
+    const finalizedAnimationCall = () => {
+      posStart.current = lerpArray(
+        posProgress.value,
+        posStart.current,
+        posTarget.current
+      );
+      //console.log(posTarget.value);
+      while (
+        posStart.current.length > 1 &&
+        posStart.current[posStart.current.length - 2] === 1
+      ) {
+        posStart.current.pop();
+      }
+
+      colorsCurrent.current = Array.from(colorsTarget.current);
+      while (colorsCurrent.current.length > posStart.current.length)
+        colorsCurrent.current.pop();
+    };
+
+    //on colorNormal prop changing, start animation
+    useMemo(() => {
+      [posTarget.current, colorsTarget.current] =
+        colorNormal.getGradientValues();
+
+      //if componend doesnt have a gradient yet, assign values directly and skip animation
+      if (posStart.current.length == 0) {
+        posStart.current = Array.from(posTarget.current);
+        colorsCurrent.current = Array.from(colorsTarget.current);
+        return;
+      }
+      if (posProgress.value != 1) finalizedAnimationCall();
+      harmonizeArrays([posStart.current, posTarget.current]);
+      colorsCurrent.current = updateArray(
+        colorsCurrent.current,
+        colorsTarget.current
+      );
+
+      posProgress.value = 0;
+      posProgress.value = withTiming(
+        1,
+        {
+          duration: 1000,
+        },
+        () => runOnJS(finalizedAnimationCall)()
+      );
     }, [colorNormal]);
 
-    React.useEffect(() => {
-      animRef.current.fadeIn(1000);
-    }, []);
+    //hook calculated on UI thread
+    const derivedPos = useDerivedValue(() => {
+      //console.log(posTarget.current);
+      const val = lerpArray(
+        posProgress.value,
+        posStart.current,
+        posTarget.current
+      );
+      return val;
+    });
 
-    const animRef = React.useRef(null);
+    const posValue = useValue([]);
+    //synchronize skia animation value on JS thread
+    useSharedValueEffect(() => {
+      posValue.current = derivedPos.value;
+    }, posProgress);
+
+    const width = styles.word.fontSize * Math.max(word.length, 1) - 40;
+    const height = 25;
+
+    const wasPressed = useRef(false);
+    const touchHandler = useTouchHandler({
+      onStart: () => {
+        wasPressed.current = true;
+      },
+      onEnd: (touchInfo) => {
+        if (
+          wasPressed.current &&
+          touchInfo.x < width &&
+          touchInfo.x > 0 &&
+          touchInfo.y > 0 &&
+          touchInfo.y < height
+        )
+          onPress();
+        wasPressed.current = false;
+      },
+    });
+
     return (
-      <Animatable.View ref={animRef}>
-        <LinearGradient
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[style]}
-          colors={gradient.colors}
-          locations={gradient.locations}
+      <View
+        style={{
+          ...styles.view,
+          height: height,
+          width: width,
+          backgroundColor: colorNormal?.[0]?.color || "white",
+        }}
+      >
+        <Canvas
+          onTouch={touchHandler}
+          style={{ flex: 1, width: width, height: height }}
         >
-          <Text style={styles.word}>{word}</Text>
-        </LinearGradient>
-      </Animatable.View>
+          <Rect x={0} y={0} width={width} height={height}>
+            <LinearGradient
+              start={vec(0, 0)}
+              end={vec(width, 0)}
+              colors={colorsCurrent.current}
+              positions={posValue}
+            />
+          </Rect>
+        </Canvas>
+        <Text style={styles.word}>{word}</Text>
+      </View>
     );
   }
 );
-//<Animated.View style={{ opacity: animFaded }}>
-//</Animated.View>
-const styles = StyleSheet.create({ word: { margin: 5 } });
 
+const styles = StyleSheet.create({
+  view: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  word: {
+    fontSize: 20,
+    position: "absolute",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});
+
+function lerpArray(progress: number, start: number[], end: number[]) {
+  "worklet";
+  const result: number[] = [];
+  for (let i = 0; i < end.length; i++)
+    result.push(mix(progress, start[i], end[i]));
+  return result;
+}
+
+function harmonizeArrays(array: Array<Array<number>>) {
+  if (!array || array.length == 0) return;
+  const maxLength = Math.max(...array.map((element) => element.length));
+  array.forEach((element) => {
+    while (element.length < maxLength) element?.push(1);
+  });
+}
+
+function updateArray<T>(oldArray: T[], newArray: T[]) {
+  return newArray.length >= oldArray.length
+    ? Array.from(newArray)
+    : oldArray.map((color, i) => newArray[i] ?? color);
+}
 export default SynonymWord;

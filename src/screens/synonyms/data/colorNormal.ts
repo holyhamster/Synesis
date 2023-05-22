@@ -25,4 +25,18 @@ export default class ColorNormal extends Array<{
     }
     return true;
   }
+
+  getGradientValues(): [number[], string[]] {
+    const location: number[] = [];
+    const colors: string[] = [];
+
+    let cycleValue = 0;
+    for (let i = 0; i < this.length; i++) {
+      location.push(cycleValue, cycleValue + this[i].value);
+      colors.push(this[i].color, this[i].color);
+      cycleValue += this[i].value;
+    }
+
+    return [location, colors];
+  }
 }
