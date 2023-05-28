@@ -15,34 +15,11 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
     setInputText("");
   };
 
-  const { inputStyle, inputAddButton, inputField, inputContainer } =
-    StyleSheet.create({
-      inputAddButton: {
-        flex: 1,
-        backgroundColor: "blue",
-      },
-      inputField: {
-        flex: 5,
-        backgroundColor: "red",
-        justifyContent: "center",
-        alignItems: "center",
-      },
-      inputStyle: {
-        borderWidth: 1,
-      },
-      inputContainer: {
-        flex: 1,
-        backgroundColor: "pink",
-        marginVertical: 10,
-        flexDirection: "row",
-      },
-    });
-
   return (
-    <View style={inputContainer}>
-      <View style={inputField}>
+    <View style={styles.inputContainer}>
+      <View style={styles.inputField}>
         <TextInput
-          style={inputStyle}
+          style={styles.inputText}
           ref={inputRef}
           autoFocus={true}
           placeholder="enter a new word"
@@ -71,4 +48,21 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  inputField: {
+    flex: 5,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  inputText: {
+    borderWidth: 1,
+  },
+  inputContainer: {
+    flex: 1,
+    marginVertical: 10,
+    flexDirection: "row",
+  },
+});
+
 export default WordInputField;
