@@ -1,13 +1,13 @@
 import React, { FC, useMemo, useEffect, useRef, memo, useState } from "react";
-import SynonymCloud from "./data/synonymCloud";
 import { StyleSheet, View } from "react-native";
 import ColorNormal from "./gradient/colorNormal";
-import SynonymWord from "./synonymWord";
 import {
   Transition,
   Transitioning,
   TransitioningView,
 } from "react-native-reanimated";
+import SynonymCloud from "../../dictionaries/data/synonymCloud";
+import SynonymWord from "./synonymWord";
 
 interface SynonymListProps {
   clouds: Map<string, SynonymCloud>;

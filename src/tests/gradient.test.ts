@@ -3,7 +3,7 @@ import {
   trimAnimationArrays,
 } from "../screens/synonyms/gradient/gradient";
 import ColorNormal from "../screens/synonyms/gradient/colorNormal";
-import WordNormal from "../screens/synonyms/data/wordNormal";
+import WordNormal from "../dictionaries/data/wordNormal";
 
 test("Normals pipeline", () => {
   const wordN = new WordNormal();

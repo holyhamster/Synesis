@@ -1,6 +1,7 @@
-import { APIErrorEnum, APIResponse } from "./apiResponse";
+import { APIErrorEnum, APIResponse } from "./data/apiResponse";
 import Dictionary, { Fetcher, Normalizer, Parser } from "./dictionary";
 
+//dictionary components for datamuse.com API
 export default function BuildDatamuse(): Dictionary {
   return new Dictionary(
     new DatamuseFetcher(),
@@ -16,7 +17,9 @@ export class DatamuseParser implements Parser {
       if (parsed.length == 0 || parsed[0]?.word == undefined)
         throw new Error(APIErrorEnum.NoWord);
 
-      const sets: string[][] = parsed.map((definition) => [definition.word]);
+      const sets: Set<string>[] = parsed.map(
+        (definition) => new Set<string>([definition.word])
+      );
 
       return { type: "success", data: [sets] };
     } catch (error) {

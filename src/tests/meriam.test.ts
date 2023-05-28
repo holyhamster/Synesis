@@ -1,4 +1,4 @@
-import { APIErrorEnum } from "../dictionaries/apiResponse";
+import { APIErrorEnum } from "../dictionaries/data/apiResponse";
 import BuildMeriam, {
   MeriamParser,
   MeriamFetcher,

@@ -1,4 +1,4 @@
-import WordNormal from "../data/wordNormal";
+import WordNormal from "../../../dictionaries/data/wordNormal";
 
 // [{color:"red", value:.5}, {color:"blue", value:.5}]
 export default class ColorNormal extends Array<{

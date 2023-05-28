@@ -14,8 +14,7 @@ import {
 
 import WordInputField from "./wordInputField";
 import SynonymList from "./synonymList";
-import SynonymCollection from "./data/synonymCollection";
-import SynonymCloud, { Cross } from "./data/synonymCloud";
+import SynonymCollection from "../../dictionaries/data/synonymCollection";
 import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
@@ -27,6 +26,7 @@ import {
 } from "../../dictionaries/storageHandling";
 import WordListView from "./wordListView";
 import HintOverlay from "./hintOverlay";
+import SynonymCloud, { Cross } from "../../dictionaries/data/synonymCloud";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   //console.log("screen render");
@@ -70,8 +70,8 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   //entries are an array of prepared data for synonym list, updaded when synArray states change
   const clouds = useMemo(() => {
     const map = new Map<string, SynonymCloud>();
-    //console.log(JSON.stringify(Cross(synArray)));
     Cross(synArray).forEach((cloud) => map.set(cloud.name, cloud));
+    console.log(JSON.stringify(Array.from(map.values())));
     return map;
   }, [synArray]);
 

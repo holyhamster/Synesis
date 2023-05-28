@@ -10,7 +10,7 @@ import {
   ViewStyle,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import SynonymCollection from "./data/synonymCollection";
+import SynonymCollection from "../../dictionaries/data/synonymCollection";
 
 interface WordListProps {
   synArray: SynonymCollection[];

@@ -1,42 +1,32 @@
 import { EmptyColor } from "../colors";
-import { APIResponse } from "../dictionaries/apiResponse";
+import { APIResponse } from "../dictionaries/data/apiResponse";
 import BuildDatamuse from "../dictionaries/datamuse";
 import Dictionary from "../dictionaries/dictionary";
-import BuildMeriam from "../dictionaries/meriam";
-import { Cross } from "../screens/synonyms/data/synonymCloud";
-import SynonymCollection from "../screens/synonyms/data/synonymCollection";
-const mockSynSets = new Map<string, string[][][]>();
+import { Cross } from "../dictionaries/data/synonymCloud";
+import SynonymCollection from "../dictionaries/data/synonymCollection";
+const mockSynSets = new Map<string, Set<string>[][]>();
 
 mockSynSets.set("hand", [
   [
-    ["angle", "aspect", "facet"],
-    ["flank", "side"],
+    new Set<string>(["angle", "aspect", "facet"]),
+    new Set<string>(["flank", "side"]),
   ],
-  [
-    ["deliver", "give"],
-    ["pass", "reach"],
-  ],
+  [new Set<string>(["deliver", "give"]), new Set<string>(["pass", "reach"])],
 ]);
 mockSynSets.set("reach", [
   [
-    ["buck", "hand", "pass"],
-    ["contact", "get"],
+    new Set<string>(["buck", "hand", "pass"]),
+    new Set<string>(["contact", "get"]),
   ],
   [
-    ["breadth", "distance"],
-    ["ambit", "breadth"],
+    new Set<string>(["breadth", "distance"]),
+    new Set<string>(["ambit", "breadth"]),
   ],
 ]);
-mockSynSets.set("test1", [[["1"]]]);
+mockSynSets.set("test1", [[new Set<string>(["1"])]]);
 mockSynSets.set("test2", [
-  [
-    ["test1", "2"],
-    ["3", "4"],
-  ],
-  [
-    ["1", "3"],
-    ["5", "6"],
-  ],
+  [new Set<string>(["test1", "2"]), new Set<string>(["3", "4"])],
+  [new Set<string>(["1", "3"]), new Set<string>(["5", "6"])],
 ]);
 
 const mockDictionary = {} as Dictionary;
@@ -51,7 +41,7 @@ test("synonym initiation", async () => {
   expect(synDef.WasFetched).toBe(true);
   expect(synDef.IsEmpty).toBe(false);
   expect(synDef.Color).not.toBe(EmptyColor);
-  expect(synDef.sets).toBe(mockSynSets.get(word));
+  expect(synDef.dataSets).toBe(mockSynSets.get(word));
 });
 
 test("synonym crossing", async () => {
@@ -73,7 +63,5 @@ test("live test", async () => {
   await syn2.Load(dict);
 
   const results = Cross([syn1, syn2]);
-  expect(syn1).toBe(1);
-  console.log(results);
   expect(results).toBe("pass");
 });

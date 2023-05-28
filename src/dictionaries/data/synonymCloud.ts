@@ -1,7 +1,8 @@
+import { SynonymDefinition, SynonymSet } from "./apiResponse";
 import SynonymCollection from "./synonymCollection";
 import WordNormal from "./wordNormal";
 
-//single word in a synonym cloud
+//Synonym word crossreferences with other words
 export default class SynonymCloud {
   connections: Map<string, number> = new Map();
   sum: number = 0;
@@ -30,32 +31,28 @@ export default class SynonymCloud {
   }
 }
 
-export function Cross(syns: SynonymCollection[]): SynonymCloud[] {
+export function Cross(collections: SynonymCollection[]): SynonymCloud[] {
   const map: Map<string, SynonymCloud> = new Map();
-
-  // make a flat array with all synonyms minus exceptions,
-  for (const syn of syns) {
-    for (const definition of syn.sets) {
-      for (const synonymList of definition) {
+  // init a cloud for every word in collections and link it to its parent word
+  for (const collection of collections)
+    for (const definition of collection.dataSets)
+      for (const synonymList of definition)
         for (const word of synonymList) {
           if (map.has(word)) continue;
           const entry = new SynonymCloud(word);
-          entry.addConnection(syn.Word);
+          entry.addConnection(collection.Word);
           map.set(word, entry);
         }
-      }
-    }
-  }
 
-  for (let i = 0; i < syns.length; i++) {
-    for (let j = i + 1; j < syns.length; j++) {
-      for (const iDefinition of syns[i].sets) {
-        for (const jDefinition of syns[j].sets) {
+  for (let i = 0; i < collections.length; i++) {
+    for (let j = i + 1; j < collections.length; j++) {
+      for (const iDefinition of collections[i].dataSets) {
+        for (const jDefinition of collections[j].dataSets) {
           weightDefinitions(
             map,
-            syns[i].Word,
+            collections[i].Word,
             iDefinition,
-            syns[j].Word,
+            collections[j].Word,
             jDefinition
           );
         }
@@ -63,7 +60,7 @@ export function Cross(syns: SynonymCollection[]): SynonymCloud[] {
     }
   }
 
-  syns.forEach((syns) => map.delete(syns.Word));
+  collections.forEach((syns) => map.delete(syns.Word));
   return Array.from(map.values()).sort(function (a, b) {
     return a.sum - b.sum;
   });
@@ -72,23 +69,23 @@ export function Cross(syns: SynonymCollection[]): SynonymCloud[] {
 function weightDefinitions(
   map: Map<string, SynonymCloud>,
   iWord: string,
-  iDefinition: string[][],
+  iDefinition: SynonymDefinition,
   jWord: string,
-  jDefinition: string[][]
+  jDefinition: SynonymDefinition
 ) {
-  for (let iSynonymList of iDefinition) {
-    if (iSynonymList.includes(jWord)) {
+  for (const iSynonymList of iDefinition) {
+    if (iSynonymList.has(jWord)) {
       changeWeight(map, iDefinition, jWord);
       changeWeight(map, iSynonymList, jWord);
     }
 
-    for (let jSynonymList of jDefinition) {
-      if (jSynonymList.includes(iWord)) {
+    for (const jSynonymList of jDefinition) {
+      if (jSynonymList.has(iWord)) {
         changeWeight(map, jDefinition, iWord);
         changeWeight(map, jSynonymList, iWord);
       }
-      for (let word of iSynonymList) {
-        if (jSynonymList.includes(word)) {
+      for (const word of iSynonymList) {
+        if (jSynonymList.has(word)) {
           changeWeight(map, iDefinition, jWord);
           changeWeight(map, iSynonymList, jWord);
           changeWeight(map, jDefinition, iWord);
@@ -101,13 +98,12 @@ function weightDefinitions(
 
 function changeWeight(
   map: Map<string, SynonymCloud>,
-  array: any[],
+  data: SynonymDefinition | SynonymSet,
   iWord: string
 ) {
-  const flat: string[] = array.flat(4);
-  flat.forEach((word) => {
-    map.get(word)?.addConnection(iWord);
-  });
+  if (Array.isArray(data))
+    data.forEach((elemet) => changeWeight(map, elemet, iWord));
+  else data.forEach((word) => map.get(word)?.addConnection(iWord));
 }
 
 export function NormalizeWord(word: string) {

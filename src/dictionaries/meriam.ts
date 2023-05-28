@@ -1,6 +1,12 @@
-import { APIErrorEnum, APIResponse } from "./apiResponse";
+import {
+  APIReturnData,
+  APIErrorEnum,
+  APIResponse,
+  SynonymDefinition,
+} from "./data/apiResponse";
 import Dictionary, { Fetcher, Parser } from "./dictionary";
 
+//dictionary components for MeriamWebster api
 export default function BuildMeriam(apiKey: string): Dictionary {
   return new Dictionary(new MeriamFetcher(apiKey), new MeriamParser());
 }
@@ -15,21 +21,19 @@ export class MeriamParser implements Parser {
 
     try {
       const parsed = JSON.parse(response);
-      const sets: string[][][] = [];
+      const data: APIReturnData = [];
       if (parsed.length == 0 || parsed[0].meta == undefined)
         throw new Error(APIErrorEnum.NoWord);
       parsed
-        .filter((element) => element.meta.id == targetWord)
-        .forEach((def) => {
-          const array: string[][] = [];
-          def.meta.syns
-            .filter((synonymList: string[]) => synonymList.length > 0)
-            .forEach((synonymList: string[]) =>
-              array.push(Array.from(synonymList))
-            );
-          sets.push(array);
+        .filter((collection) => collection.meta.id == targetWord)
+        .forEach((definitionJSON) => {
+          const definition: SynonymDefinition = [];
+          definitionJSON.meta.syns.forEach((synonymList: string[]) => {
+            if (synonymList?.length > 0) definition.push(new Set(synonymList));
+          });
+          data.push(definition);
         });
-      return { type: "success", data: sets };
+      return { type: "success", data: data };
     } catch (error) {
       return { type: "error", errorMessage: error.message };
     }

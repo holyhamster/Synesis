@@ -1,10 +1,8 @@
-import { EmptyColor, getFreeColor } from "../../../colors";
-import Dictionary from "../../../dictionaries/dictionary";
+import { EmptyColor, getFreeColor } from "../../colors";
+import { APIReturnData } from "./apiResponse";
+import Dictionary from "../dictionary";
 
-type SynonymsList = Set<string>;
-type SynonymDefinition = Set<SynonymsList>;
-
-//A tree of synonyms for a word
+//Synonym word with fetched api data
 export default class SynonymCollection {
   public Word: string;
   constructor(word: string, takenColors: string[] = []) {
@@ -12,21 +10,11 @@ export default class SynonymCollection {
     this.color = getFreeColor(takenColors);
   }
 
-  private total: string[] = [];
-
-  //Word : [Definition1:
-  //         [SynonymSetA:
-  //           [Synonym1A1, Synonym1A2],
-  //          SynonymSetB:
-  //           [Synonym1B1, Synonym1B2]]],
-  //        Definition2:...]
-
-  public sets: string[][][] = [];
-  private set(value: string[][][]) {
-    this.total = this.sets.flat(3);
+  public dataSets: APIReturnData = [];
+  private set(value: APIReturnData) {
     this.wasFetched = true;
-    this.sets = value;
-    this.isEmpty = this.sets.length == 0;
+    this.dataSets = value;
+    this.isEmpty = this.dataSets.length == 0;
   }
 
   private color: string;
