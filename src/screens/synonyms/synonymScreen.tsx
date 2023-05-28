@@ -15,7 +15,7 @@ import {
 import WordInputField from "./wordInputField";
 import SynonymList from "./synonymList";
 import SynonymCollection from "./data/synonymCollection";
-import SynonymCloud, { Cross } from "./data/dataEntry";
+import SynonymCloud, { Cross } from "./data/synonymCloud";
 import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";

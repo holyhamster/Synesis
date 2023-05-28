@@ -3,7 +3,7 @@ import { APIResponse } from "../dictionaries/apiResponse";
 import BuildDatamuse from "../dictionaries/datamuse";
 import Dictionary from "../dictionaries/dictionary";
 import BuildMeriam from "../dictionaries/meriam";
-import { Cross } from "../screens/synonyms/data/dataEntry";
+import { Cross } from "../screens/synonyms/data/synonymCloud";
 import SynonymCollection from "../screens/synonyms/data/synonymCollection";
 const mockSynSets = new Map<string, string[][][]>();
 
