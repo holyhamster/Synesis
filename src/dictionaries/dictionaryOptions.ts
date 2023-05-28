@@ -1,14 +1,13 @@
 import BuildDatamuse from "./datamuse";
 import BuildMeriam from "./meriam";
-import Keys from "./keys";
+import Keys from "./keyHandling";
 import Dictionary, {
   DictionaryKeyRequirement,
   DictionaryType,
 } from "./dictionary";
-import { GetStringFromStorage, SetStringInStorage } from "./storage";
+import { GetStringFromStorage, SetStringInStorage } from "./storageHandling";
 
 //Getters and setters for dictionary information in local storage
-
 export async function GetCurrentDictionary(): Promise<Dictionary> {
   const apiType = (await LoadCurrentDictionaryType()) || DictionaryType.Self;
   let key;

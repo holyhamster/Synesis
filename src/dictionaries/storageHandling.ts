@@ -10,4 +10,5 @@ export async function SetStringInStorage(storageString: string, value: string) {
 
 export enum StringTypesEnum {
   WasLaunched = "WasLaunched",
+  DisabledVisulats = "DisabledVisulats",
 }
