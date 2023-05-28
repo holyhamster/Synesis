@@ -1,6 +1,6 @@
 import { APIResponse } from "./apiResponse";
 
-//fetches and parses a word
+//fetches information about a word from an API and parses it into a synonym
 export default class Dictionary {
   constructor(
     private fetcher: Fetcher,
