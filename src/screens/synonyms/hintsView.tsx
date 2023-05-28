@@ -38,16 +38,6 @@ const HintView: FC<HintViewProps> = ({
     };
   }, []);
 
-  const styles = StyleSheet.create({
-    view: {
-      backgroundColor: "lightgrey",
-      borderColor: "white",
-      borderRadius: 5,
-      borderWidth: 1,
-      padding: 6,
-    },
-  });
-
   return (
     <Animated.View style={[{ opacity: animFaded }, styles.view, styleProp]}>
       <TouchableOpacity onPress={onPress}>
@@ -56,5 +46,15 @@ const HintView: FC<HintViewProps> = ({
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  view: {
+    backgroundColor: "lightgrey",
+    borderColor: "white",
+    borderRadius: 5,
+    borderWidth: 1,
+    padding: 6,
+  },
+});
 
 export default HintView;
