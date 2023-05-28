@@ -1,40 +1,50 @@
 import { FC } from "react";
 import {
   Button,
+  Pressable,
   StyleProp,
   StyleSheet,
+  Text,
   TouchableOpacity,
   View,
   ViewStyle,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import SynDefinition from "./data/synDefinition";
+import SynonymCollection from "./data/synonymCollection";
 
 interface WordListProps {
-  synArray: SynDefinition[];
+  synArray: SynonymCollection[];
   style?: StyleProp<ViewStyle>;
   onWordPress: (word: string) => void;
+  onLongPress: (word: string) => void;
   onClearButton: () => void;
 }
 
-/*List of selected words, removes a word if its pressed*/
+/*List of selected words, calls input events on presses*/
 const WordListView: FC<WordListProps> = ({
   synArray,
   onWordPress,
+  onLongPress,
   onClearButton,
   style,
 }) => {
+  //todo: add haptic feedback to long press with react-native-haptic-feedback
   return (
     <>
       <View style={[styles.selectedContainer, style]}>
         <View style={styles.selectedList}>
           {synArray.map((synDef, index) => (
-            <Button
+            <Pressable
               key={index}
-              title={synDef.Word}
-              color={synDef.Color}
+              android_ripple={{
+                color: "white",
+              }}
+              style={{ backgroundColor: synDef.Color }}
               onPress={() => onWordPress(synDef.Word)}
-            />
+              onLongPress={() => onLongPress(synDef.Word)}
+            >
+              <Text style={{ margin: 5 }}>{synDef.Word}</Text>
+            </Pressable>
           ))}
         </View>
         <View style={styles.selectedClearButton}>
