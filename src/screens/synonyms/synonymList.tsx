@@ -1,5 +1,5 @@
 import React, { FC, useMemo, useEffect, useRef, memo, useState } from "react";
-import DataEntry from "./data/dataEntry";
+import SynonymCloud from "./data/dataEntry";
 import { StyleSheet, View } from "react-native";
 import ColorNormal from "./gradient/colorNormal";
 import SynonymWord from "./synonymWord";
@@ -10,25 +10,25 @@ import {
 } from "react-native-reanimated";
 
 interface SynonymListProps {
-  entries: Map<string, DataEntry>;
+  clouds: Map<string, SynonymCloud>;
   colorMap: Map<string, string>;
   addWord: (newWord: string) => void;
   highlightedWord?: string;
 }
 
 const SynonymList: FC<SynonymListProps> = memo(
-  ({ entries, colorMap, addWord, highlightedWord }) => {
+  ({ clouds, colorMap, addWord, highlightedWord }) => {
     //console.log(`SynonymList render`);
 
     const [colorNormals, setColorNormals] = useState(
       new Map<string, ColorNormal>()
     );
 
-    const [sortedEntries, setSortedEntries] = useState<DataEntry[]>([]);
+    const [sortedEntries, setSortedEntries] = useState<SynonymCloud[]>([]);
     const transitionView = useRef<TransitioningView>();
     useEffect(() => {
       console.log(`sorted hook ${highlightedWord}`);
-      const newSorted = Array.from(entries.values());
+      const newSorted = Array.from(clouds.values());
       if (highlightedWord?.length > 0)
         newSorted.sort(
           (a, b) =>
@@ -39,19 +39,17 @@ const SynonymList: FC<SynonymListProps> = memo(
       setSortedEntries(newSorted);
 
       transitionView.current?.animateNextTransition();
-    }, [entries, highlightedWord]);
+    }, [clouds, highlightedWord]);
 
     useEffect(() => {
       const map = new Map();
-      entries.forEach((entry, name) => {
+      clouds.forEach((cloud, name) => {
         const oldNormal = colorNormals.get(name);
-        const newNormal = new ColorNormal(entry.GetWordNormal(), colorMap);
+        const newNormal = new ColorNormal(cloud.GetWordNormal(), colorMap);
         map.set(name, oldNormal?.isEqual(newNormal) ? oldNormal : newNormal);
       });
       setColorNormals(map);
-    }, [colorMap, entries]);
-
-    //transView.current?.animateNextTransition();
+    }, [colorMap, clouds]);
 
     return (
       <Transitioning.View
@@ -60,7 +58,7 @@ const SynonymList: FC<SynonymListProps> = memo(
         }}
         ref={transitionView}
         style={styles.list}
-        transition={<></>}
+        transition={transition}
       >
         {sortedEntries.map((entry) => {
           const colorNormal = colorNormals.get(entry.name);
@@ -102,7 +100,6 @@ const styles = StyleSheet.create({
 const transition = (
   <Transition.Together>
     <Transition.In type="fade" delayMs={1000} durationMs={500} />
-    <Transition.Change delayMs={5000} durationMs={500} />
     <Transition.Out type="fade" delayMs={1000} durationMs={500} />
   </Transition.Together>
 );

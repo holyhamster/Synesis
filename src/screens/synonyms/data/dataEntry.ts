@@ -2,7 +2,7 @@ import SynonymCollection from "./synonymCollection";
 import WordNormal from "./wordNormal";
 
 //single word in a synonym cloud
-export default class DataEntry {
+export default class SynonymCloud {
   connections: Map<string, number> = new Map();
   sum: number = 0;
   public constructor(public name: string) {}
@@ -30,8 +30,8 @@ export default class DataEntry {
   }
 }
 
-export function Cross(syns: SynonymCollection[]): DataEntry[] {
-  const map: Map<string, DataEntry> = new Map();
+export function Cross(syns: SynonymCollection[]): SynonymCloud[] {
+  const map: Map<string, SynonymCloud> = new Map();
 
   // make a flat array with all synonyms minus exceptions,
   for (const syn of syns) {
@@ -39,7 +39,7 @@ export function Cross(syns: SynonymCollection[]): DataEntry[] {
       for (const synonymList of definition) {
         for (const word of synonymList) {
           if (map.has(word)) continue;
-          const entry = new DataEntry(word);
+          const entry = new SynonymCloud(word);
           entry.addConnection(syn.Word);
           map.set(word, entry);
         }
@@ -70,7 +70,7 @@ export function Cross(syns: SynonymCollection[]): DataEntry[] {
 }
 
 function weightDefinitions(
-  map: Map<string, DataEntry>,
+  map: Map<string, SynonymCloud>,
   iWord: string,
   iDefinition: string[][],
   jWord: string,
@@ -100,7 +100,7 @@ function weightDefinitions(
 }
 
 function changeWeight(
-  map: Map<string, DataEntry>,
+  map: Map<string, SynonymCloud>,
   array: any[],
   iWord: string
 ) {
