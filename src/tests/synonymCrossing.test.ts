@@ -4,7 +4,7 @@ import BuildDatamuse from "../dictionaries/datamuse";
 import Dictionary from "../dictionaries/dictionary";
 import BuildMeriam from "../dictionaries/meriam";
 import { Cross } from "../screens/synonyms/data/dataEntry";
-import SynDefinition from "../screens/synonyms/data/synDefinition";
+import SynonymCollection from "../screens/synonyms/data/synonymCollection";
 const mockSynSets = new Map<string, string[][][]>();
 
 mockSynSets.set("hand", [
@@ -45,7 +45,7 @@ mockDictionary.GetSynonyms = async (string: string) =>
 
 test("synonym initiation", async () => {
   const word = "hand";
-  let synDef = new SynDefinition(word);
+  let synDef = new SynonymCollection(word);
   await synDef.Load(mockDictionary);
   synDef.WasFetched;
   expect(synDef.WasFetched).toBe(true);
@@ -55,9 +55,9 @@ test("synonym initiation", async () => {
 });
 
 test("synonym crossing", async () => {
-  let synDef1 = new SynDefinition("hand");
+  let synDef1 = new SynonymCollection("hand");
   await synDef1.Load(mockDictionary);
-  let synDef2 = new SynDefinition("reach");
+  let synDef2 = new SynonymCollection("reach");
   await synDef2.Load(mockDictionary);
 
   const results = Cross([synDef1, synDef2]);
@@ -67,8 +67,8 @@ test("synonym crossing", async () => {
 
 test("live test", async () => {
   var dict = BuildDatamuse();
-  const syn1 = new SynDefinition("sunday");
-  const syn2 = new SynDefinition("sun");
+  const syn1 = new SynonymCollection("sunday");
+  const syn2 = new SynonymCollection("sun");
   await syn1.Load(dict);
   await syn2.Load(dict);
 

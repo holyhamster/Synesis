@@ -4,7 +4,7 @@ import BuildDatamuse, {
   DatamuseFetcher,
 } from "../dictionaries/datamuse";
 import { Cross } from "../screens/synonyms/data/dataEntry";
-import SynDefinition from "../screens/synonyms/data/synDefinition";
+import SynonymCollection from "../screens/synonyms/data/synonymCollection";
 
 const mockresponse = `[{"word":"list","score":5054},{"word":"lean","score":3439},{"word":"propensity","score":2071},{"word":"tilt","score":1472},{"word":"proclivity","score":1374},{"word":"inclination","score":1268},{"word":"tendency","score":1137},{"word":"inclined","score":903},{"word":"tilted","score":363},{"word":"canted","score":298},{"word":"atilt","score":277},{"word":"tipped","score":231},{"word":"unerect","score":29}]`;
 test("Datamuse fetch test", async () => {
@@ -29,8 +29,8 @@ test("Datamuse parse test", async () => {
 
 const datamuseDictionary = BuildDatamuse();
 test("datamuse crossing", async () => {
-  const synDef1 = new SynDefinition("leaning");
-  const synDef2 = new SynDefinition("tilted");
+  const synDef1 = new SynonymCollection("leaning");
+  const synDef2 = new SynonymCollection("tilted");
 
   await synDef1.Load(datamuseDictionary);
   await synDef2.Load(datamuseDictionary);
