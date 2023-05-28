@@ -1,8 +1,8 @@
-import SynDefinition from "./synDefinition";
+import SynonymCollection from "./synonymCollection";
 import WordNormal from "./wordNormal";
 
 //single word in a synonym cloud
-export default class DataEntryClass {
+export default class DataEntry {
   connections: Map<string, number> = new Map();
   sum: number = 0;
   public constructor(public name: string) {}
@@ -22,7 +22,7 @@ export default class DataEntryClass {
       this.connections.forEach((val, key) =>
         this.vectorCache.push({
           word: key,
-          value: parseFloat((val / this.sum).toFixed(3)),
+          value: parseFloat((val / this.sum).toFixed(5)),
         })
       );
     }
@@ -30,18 +30,16 @@ export default class DataEntryClass {
   }
 }
 
-export type WordValue = { name: string; value: number };
-
-export function Cross(syns: SynDefinition[]): DataEntryClass[] {
-  const map: Map<string, DataEntryClass> = new Map();
+export function Cross(syns: SynonymCollection[]): DataEntry[] {
+  const map: Map<string, DataEntry> = new Map();
 
   // make a flat array with all synonyms minus exceptions,
-  for (let syn of syns) {
-    for (let definition of syn.sets) {
-      for (let synonymList of definition) {
-        for (let word of synonymList) {
+  for (const syn of syns) {
+    for (const definition of syn.sets) {
+      for (const synonymList of definition) {
+        for (const word of synonymList) {
           if (map.has(word)) continue;
-          const entry = new DataEntryClass(word);
+          const entry = new DataEntry(word);
           entry.addConnection(syn.Word);
           map.set(word, entry);
         }
@@ -51,8 +49,8 @@ export function Cross(syns: SynDefinition[]): DataEntryClass[] {
 
   for (let i = 0; i < syns.length; i++) {
     for (let j = i + 1; j < syns.length; j++) {
-      for (let iDefinition of syns[i].sets) {
-        for (let jDefinition of syns[j].sets) {
+      for (const iDefinition of syns[i].sets) {
+        for (const jDefinition of syns[j].sets) {
           weightDefinitions(
             map,
             syns[i].Word,
@@ -72,7 +70,7 @@ export function Cross(syns: SynDefinition[]): DataEntryClass[] {
 }
 
 function weightDefinitions(
-  map: Map<string, DataEntryClass>,
+  map: Map<string, DataEntry>,
   iWord: string,
   iDefinition: string[][],
   jWord: string,
@@ -100,8 +98,9 @@ function weightDefinitions(
     }
   }
 }
+
 function changeWeight(
-  map: Map<string, DataEntryClass>,
+  map: Map<string, DataEntry>,
   array: any[],
   iWord: string
 ) {

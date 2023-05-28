@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import {
   Button,
   DeviceEventEmitter,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -26,8 +27,8 @@ const InputModal: FC<InputModalProps> = ({ navigation, route }) => {
 
   const [inputText, setInputText] = React.useState("");
   return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-      <Text style={{ fontSize: 30 }}>Enter {varHint ?? "variable"}</Text>
+    <View style={styles.parentView}>
+      <Text style={styles.text}>Enter {varHint ?? "variable"}</Text>
       <TextInput
         autoFocus={true}
         blurOnSubmit={true}
@@ -40,7 +41,7 @@ const InputModal: FC<InputModalProps> = ({ navigation, route }) => {
           if (text) submitValue(text);
         }}
       />
-      <View style={{ flexDirection: "row" }}>
+      <View style={styles.buttonView}>
         <Button title="Cancel" onPress={() => navigation.goBack()} />
         <Button title="OK" onPress={() => submitValue(inputText)} />
       </View>
@@ -48,4 +49,9 @@ const InputModal: FC<InputModalProps> = ({ navigation, route }) => {
   );
 };
 
+const styles = StyleSheet.create({
+  parentView: { flex: 1, alignItems: "center", justifyContent: "center" },
+  text: { fontSize: 30 },
+  buttonView: { flexDirection: "row" },
+});
 export default InputModal;

@@ -17,14 +17,13 @@ import { EventsEnum } from "../../events";
 import {
   LoadCurrentDictionaryType,
   SaveCurrentDictionaryType,
-} from "../../dictionaries/dictionaryStorage";
+} from "../../dictionaries/dictionaryOptions";
 
 interface OptionsApiSwitchProps {
   navigation: OptionsProps["navigation"];
 }
 
-//List of touchable controls to switch API, pops up InputModal for API key
-
+//List of toggles to switch API, pops up InputModal for API key
 export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
   const [currentDictionaryType, setCurrentDictionaryType] =
     React.useState<DictionaryType>();
@@ -60,11 +59,10 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
   }, []);
 
   const apiTogglesData = Object.values(DictionaryType).map((dictionaryType) => {
-    const val = {
+    return {
       name: dictionaryType,
       state: currentDictionaryType == dictionaryType,
     };
-    return val;
   });
 
   const onPressAPIToggle = (dictionaryType: DictionaryType) => {
@@ -78,7 +76,6 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
         varHint: dictionaryType,
         eventName: EventsEnum.ApiKeyEntered,
       });
-
       return;
     }
 
