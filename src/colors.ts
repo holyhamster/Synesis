@@ -6,8 +6,11 @@ export function getRandomColor(): string {
 }
 
 export function getFreeColor(takenColors: string[]): string {
-  //TODO: make an array of premade colors, make this function pick a non-busy one
-  return getRandomColor();
+  const set = new Set(colors);
+  for (const color of takenColors) set.delete(color);
+  return set.size == 0
+    ? getRandomColor()
+    : Array.from(set)[Math.floor(Math.random() * set.size)];
 }
 
 const colors = [
