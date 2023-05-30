@@ -37,7 +37,7 @@ const SynonymWord: FC<SynonymWordProps> = memo(
     for (let i = 0; i < colorNormal.length; i++)
       if (colorNormal[i].value > backgroundColorValue)
         background = colorNormal[i].color;
-
+    //background = "transparent"; //HERE
     const highlightOpacity = highlighted && !wasPressed ? 0.5 : 0;
     return (
       <TouchableHighlight
@@ -50,21 +50,16 @@ const SynonymWord: FC<SynonymWordProps> = memo(
       >
         <View
           style={{
-            ...styles.view,
-            height: rectHeight,
-            width: rectWidth,
-            backgroundColor: background,
+            ...styles.container,
+            //backgroundColor: background,
           }}
         >
-          <Canvas
-            style={{ ...styles.canvas, width: rectWidth, height: rectHeight }}
-          >
-            <GradientRect
-              colorNormal={colorNormal}
-              rectHeight={rectHeight}
-              rectWidth={rectWidth}
-            />
-          </Canvas>
+          <GradientRect
+            colorNormal={colorNormal}
+            rectHeight={rectHeight}
+            rectWidth={rectWidth}
+          />
+
           <View
             style={{
               ...styles.touchOverlay,
@@ -78,26 +73,21 @@ const SynonymWord: FC<SynonymWordProps> = memo(
   }
 );
 const styles = StyleSheet.create({
-  view: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  canvas: { flex: 1 },
+  container: {},
   word: {
+    flex: 1,
+    margin: 5,
+    marginHorizontal: 10,
     fontSize: 20,
-    position: "absolute",
-    justifyContent: "center",
-    alignItems: "center",
   },
   touchOverlay: {
+    flex: 1,
     position: "absolute",
+    height: "100%",
+    width: "100%",
     top: 0,
     right: 0,
-    bottom: 0,
-    left: 0,
     opacity: 0.1,
-    justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "white",
   },
 });

@@ -1,13 +1,16 @@
 import {
+  AnimatedProp,
+  Canvas,
   LinearGradient,
   Rect,
+  SkSize,
   mix,
   useSharedValueEffect,
   useValue,
   vec,
 } from "@shopify/react-native-skia";
-import React, { FC, useEffect } from "react";
-import { StyleProp, ViewStyle } from "react-native";
+import React, { FC, useEffect, useRef } from "react";
+import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 import {
   useDerivedValue,
   useSharedValue,
@@ -28,10 +31,17 @@ interface GradientRectProps {
 const GradientRect: FC<GradientRectProps> = ({
   style,
   colorNormal,
-  rectWidth,
-  rectHeight,
   animationLength,
 }) => {
+  //TODO: remove background
+  const background = useRef("white");
+  const setBackgroundToDominant = (colorNormal) => {
+    let backgroundColorValue = 0;
+    for (let i = 0; i < colorNormal.length; i++)
+      if (colorNormal[i].value > backgroundColorValue)
+        background.current = colorNormal[i].color;
+  };
+
   //reference to color gradient with ski's useValue hook for updating on UI thread
   const colors = useValue<string[]>([
     colorNormal[0].color ?? "white",
@@ -45,6 +55,8 @@ const GradientRect: FC<GradientRectProps> = ({
 
   //on colorNormal prop changing, calculate starting and ending animation points and que it
   useEffect(() => {
+    setBackgroundToDominant(colorNormal);
+
     const [newPosEnd, newColorsEnd] = colorNormal.toGradientValues();
     if (newPosEnd.length < 2 || newColorsEnd.length < 2) return;
 
@@ -91,17 +103,41 @@ const GradientRect: FC<GradientRectProps> = ({
     posValue.current = derivedPos.value;
   }, posProgress);
 
+  //extract width and height out of canvas with an onLayout call
+  const rectWidth = useValue(0);
+  const rectHeight = useValue(0);
+  const gradientEnd = useValue(vec(0, 0));
+  const [layoutMeasured, setLayoutMeasured] = React.useState(false);
+  const setDimensions = ({ nativeEvent }) => {
+    rectWidth.current = nativeEvent.layout.width;
+    rectHeight.current = nativeEvent.layout.height;
+    gradientEnd.current = vec(rectWidth.current, 0);
+    setLayoutMeasured(true);
+  };
+
   return (
-    <Rect x={0} y={0} width={rectWidth} height={rectHeight}>
-      <LinearGradient
-        start={vec(0, 0)}
-        end={vec(rectWidth, 0)}
-        colors={colors}
-        positions={posValue}
-      />
-    </Rect>
+    <Canvas
+      style={{ ...styles.canvas }}
+      onLayout={layoutMeasured ? undefined : setDimensions}
+    >
+      <Rect x={0} y={0} width={rectWidth} height={rectHeight}>
+        <LinearGradient
+          start={vec(0, 0)}
+          end={gradientEnd}
+          colors={colors}
+          positions={posValue}
+        />
+      </Rect>
+    </Canvas>
   );
 };
+const styles = StyleSheet.create({
+  canvas: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+  },
+});
 
 //interpolate arrays of values, can be run on UI thread
 function lerpArray(progress: number, start: number[], end: number[]) {
