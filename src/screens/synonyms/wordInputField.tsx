@@ -1,6 +1,7 @@
 import React, { FC } from "react";
 import { TextInput, StyleSheet, View, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { UIGrey } from "../../colors";
 
 interface WordInputProps {
   inputRef: React.RefObject<TextInput>;
@@ -16,13 +17,13 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
   };
 
   return (
-    <View style={styles.inputContainer}>
-      <View style={styles.inputField}>
+    <View style={styles.container}>
+      <View style={styles.inputHolder}>
         <TextInput
           style={styles.inputText}
           ref={inputRef}
           autoFocus={true}
-          placeholder="enter a new word"
+          placeholder=" enter a new word"
           blurOnSubmit={true}
           value={inputText}
           onChangeText={(text) => {
@@ -34,34 +35,44 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
           }}
         />
       </View>
-
       <TouchableOpacity
+        style={styles.inputButton}
         onPress={() => {
           if (inputText != "") onSubmitEditing(inputText);
         }}
         disabled={inputText === ""}
       >
-        <View style={{ alignItems: "center" }}>
-          <MaterialIcons name="add" size={32} color="black" />
-        </View>
+        <MaterialIcons name="add" size={40} color="black" />
       </TouchableOpacity>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  inputField: {
-    flex: 5,
-    justifyContent: "center",
+  inputButton: {
     alignItems: "center",
+    borderColor: "black",
+    borderWidth: 2,
+    borderRadius: 15,
+    marginHorizontal: 5,
+    backgroundColor: UIGrey,
   },
-  inputText: {
-    borderWidth: 1,
-  },
-  inputContainer: {
+  container: {
     flex: 1,
     marginVertical: 10,
     flexDirection: "row",
+  },
+  inputHolder: {
+    flex: 5,
+    borderWidth: 2,
+    borderRadius: 15,
+    marginHorizontal: 5,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: UIGrey,
+  },
+  inputText: {
+    fontSize: 20,
   },
 });
 
