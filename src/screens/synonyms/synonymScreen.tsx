@@ -71,7 +71,6 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const clouds = useMemo(() => {
     const map = new Map<string, SynonymCloud>();
     Cross(synArray).forEach((cloud) => map.set(cloud.name, cloud));
-    console.log(JSON.stringify(Array.from(map.values())));
     return map;
   }, [synArray]);
 
@@ -183,8 +182,7 @@ const styles = StyleSheet.create({
   },
 
   inputContainer: {
-    backgroundColor: "pink",
-    marginVertical: 10,
+    marginVertical: 3,
     flexDirection: "row",
   },
 
@@ -203,7 +201,6 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     columnGap: 100,
     paddingVertical: 5,
-    backgroundColor: "magenta",
   },
 });
 

@@ -1,5 +1,5 @@
 import React, { FC, useMemo, useEffect, useRef, memo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import ColorNormal from "./gradient/colorNormal";
 import {
   Transition,
@@ -27,7 +27,6 @@ const SynonymList: FC<SynonymListProps> = memo(
     const [sortedEntries, setSortedEntries] = useState<SynonymCloud[]>([]);
     const transitionView = useRef<TransitioningView>();
     useEffect(() => {
-      console.log(`sorted hook ${highlightedWord}`);
       const newSorted = Array.from(clouds.values());
       if (highlightedWord?.length > 0)
         newSorted.sort(
@@ -35,9 +34,7 @@ const SynonymList: FC<SynonymListProps> = memo(
             (a.connections.get(highlightedWord) / a.sum || 0) -
             (b.connections.get(highlightedWord) / b.sum || 0)
         );
-
-      setSortedEntries(newSorted);
-
+      setSortedEntries(newSorted.slice(-wordLimit, -1));
       transitionView.current?.animateNextTransition();
     }, [clouds, highlightedWord]);
 
@@ -51,11 +48,10 @@ const SynonymList: FC<SynonymListProps> = memo(
       setColorNormals(map);
     }, [colorMap, clouds]);
 
+    const transitionInProgress = useRef(false);
+
     return (
       <Transitioning.View
-        onLayout={(event) => {
-          console.log(event.nativeEvent);
-        }}
         ref={transitionView}
         style={styles.list}
         transition={transition}
@@ -79,18 +75,17 @@ const SynonymList: FC<SynonymListProps> = memo(
     );
   }
 );
+const wordLimit = 30;
 
 const styles = StyleSheet.create({
   list: {
     flex: 1,
-    bottom: 0,
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "space-around",
     alignContent: "center",
+    alignItems: "center",
     gap: 7,
-    backgroundColor: "yellow",
   },
   word: {
     fontSize: 20,
@@ -99,8 +94,8 @@ const styles = StyleSheet.create({
 
 const transition = (
   <Transition.Together>
-    <Transition.In type="fade" delayMs={1000} durationMs={500} />
-    <Transition.Out type="fade" delayMs={1000} durationMs={500} />
+    <Transition.In type="fade" durationMs={500} />
+    <Transition.Out type="fade" durationMs={500} />
   </Transition.Together>
 );
 
