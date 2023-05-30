@@ -25,3 +25,4 @@ const colors = [
   "#24FF24",
 ];
 export const EmptyColor: string = "#7A7B7A";
+export const UIGrey: string = "lightgrey";
