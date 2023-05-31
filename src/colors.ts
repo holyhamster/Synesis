@@ -24,5 +24,7 @@ const colors = [
   "#FFB488",
   "#24FF24",
 ];
-export const EmptyColor: string = "#7A7B7A";
-export const UIGrey: string = "lightgrey";
+export const DisabledGrey: string = "#7A7B7A";
+export const BGWhite: string = "white";
+export const AccentColor: string = "#eac8f7";
+export const CountourColor: string = "black";

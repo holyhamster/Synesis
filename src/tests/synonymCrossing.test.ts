@@ -1,4 +1,4 @@
-import { EmptyColor } from "../colors";
+import { DisabledGrey } from "../colors";
 import { APIResponse } from "../dictionaries/data/apiResponse";
 import BuildDatamuse from "../dictionaries/datamuse";
 import Dictionary from "../dictionaries/dictionary";
@@ -40,7 +40,7 @@ test("synonym initiation", async () => {
   synDef.WasFetched;
   expect(synDef.WasFetched).toBe(true);
   expect(synDef.IsEmpty).toBe(false);
-  expect(synDef.Color).not.toBe(EmptyColor);
+  expect(synDef.Color).not.toBe(DisabledGrey);
   expect(synDef.dataSets).toBe(mockSynSets.get(word));
 });
 

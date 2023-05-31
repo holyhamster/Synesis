@@ -1,4 +1,4 @@
-import { EmptyColor, getFreeColor } from "../../colors";
+import { DisabledGrey, getFreeColor } from "../../colors";
 import { APIReturnData } from "./apiResponse";
 import Dictionary from "../dictionary";
 
@@ -19,7 +19,7 @@ export default class SynonymCollection {
 
   private color: string;
   public get Color(): string {
-    return this.IsEmpty ? EmptyColor : this.color;
+    return this.IsEmpty ? DisabledGrey : this.color;
   }
 
   public async Load(
