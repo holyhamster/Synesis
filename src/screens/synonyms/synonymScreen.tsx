@@ -27,6 +27,8 @@ import {
 import WordListView from "./wordListView";
 import HintOverlay from "./hintOverlay";
 import SynonymCloud, { Cross } from "../../dictionaries/data/synonymCloud";
+import * as Colors from "../../colors";
+import MaterialButton from "../materialButton";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   //console.log("screen render");
@@ -122,6 +124,7 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
       />
 
       <ScrollView
+        keyboardShouldPersistTaps="handled"
         style={styles.synonymScroll}
         fadingEdgeLength={1}
         snapToEnd={true}
@@ -136,10 +139,11 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
       </ScrollView>
 
       <View style={styles.menuButton}>
-        <Button
-          title={"Options"}
+        <MaterialButton
           onPress={() => navigation.navigate("Options")}
-        ></Button>
+          name="settings"
+          style={{ size: 50 }}
+        />
       </View>
 
       <View style={styles.connectionIndicator}>
@@ -149,13 +153,14 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
           size="large"
         />
       </View>
-
-      <WordListView
-        synArray={synArray}
-        onClearButton={() => setSynArray([])}
-        onWordPress={(word) => removeWord(word)}
-        onLongPress={(word) => setHighlightedWord(word)}
-      />
+      <View style={{ backgroundColor: Colors.AccentColor, paddingVertical: 7 }}>
+        <WordListView
+          synArray={synArray}
+          onClearButton={() => setSynArray([])}
+          onWordPress={(word) => removeWord(word)}
+          onLongPress={(word) => setHighlightedWord(word)}
+        />
+      </View>
 
       <View style={styles.inputContainer}>
         <WordInputField inputRef={inputRef} onAddWord={addWord} />
@@ -182,15 +187,15 @@ const styles = StyleSheet.create({
   },
 
   inputContainer: {
-    marginVertical: 3,
     flexDirection: "row",
+    backgroundColor: Colors.AccentColor,
+    paddingVertical: 7,
   },
 
   menuButton: {
     position: "absolute",
-    right: 10,
-    top: 40,
-    backgroundColor: "green",
+    left: 10,
+    top: 50,
     zIndex: 1,
   },
 

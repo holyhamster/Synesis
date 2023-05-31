@@ -1,26 +1,17 @@
 import React, { FC } from "react";
-import {
-  Button,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import SynonymCollection from "../../dictionaries/data/synonymCollection";
-import { UIGrey } from "../../colors";
+import * as Colors from "../../colors";
 import {
   Transition,
   Transitioning,
   TransitioningView,
 } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import MaterialButton from "../materialButton";
 
 interface WordListProps {
   synArray: SynonymCollection[];
-  style?: StyleProp<ViewStyle>;
   onWordPress: (word: string) => void;
   onLongPress: (word: string) => void;
   onClearButton: () => void;
@@ -32,7 +23,6 @@ const WordListView: FC<WordListProps> = ({
   onWordPress,
   onLongPress,
   onClearButton,
-  style,
 }) => {
   React.useEffect(() => {
     transRef.current.animateNextTransition();
@@ -42,7 +32,7 @@ const WordListView: FC<WordListProps> = ({
   return (
     <>
       <Transitioning.View
-        style={[styles.selectedContainer, style]}
+        style={styles.selectedContainer}
         transition={transition}
         ref={transRef}
       >
@@ -55,20 +45,26 @@ const WordListView: FC<WordListProps> = ({
               }}
               style={{ backgroundColor: synDef.Color }}
               onPress={() => onWordPress(synDef.Word)}
-              onLongPress={() => onLongPress(synDef.Word)}
+              onLongPress={() => {
+                onLongPress(synDef.Word);
+                Haptics.selectionAsync();
+              }}
             >
               <Text style={styles.text}>{synDef.Word}</Text>
             </Pressable>
           ))}
         </View>
 
-        <TouchableOpacity
-          style={styles.selectedClearButton}
-          onPress={onClearButton}
+        <MaterialButton
           disabled={synArray.length == 0}
-        >
-          <MaterialIcons name="clear" size={40} color="black" />
-        </TouchableOpacity>
+          name="clear"
+          onPress={onClearButton}
+          style={{
+            backgroundColor: Colors.BGWhite,
+            disabledCountourColor: Colors.DisabledGrey,
+            countourColor: Colors.CountourColor,
+          }}
+        />
       </Transitioning.View>
     </>
   );
@@ -91,13 +87,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 5,
     gap: 5,
-  },
-  selectedClearButton: {
-    backgroundColor: UIGrey,
-    alignItems: "center",
-    borderWidth: 2,
-    borderRadius: 15,
-    marginHorizontal: 5,
   },
 });
 

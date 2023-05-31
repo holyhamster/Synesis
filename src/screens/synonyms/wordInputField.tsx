@@ -1,7 +1,7 @@
 import React, { FC } from "react";
-import { TextInput, StyleSheet, View, TouchableOpacity } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
-import { UIGrey } from "../../colors";
+import { TextInput, StyleSheet, View } from "react-native";
+import { BGWhite, CountourColor, DisabledGrey } from "../../colors";
+import MaterialButton from "../materialButton";
 
 interface WordInputProps {
   inputRef: React.RefObject<TextInput>;
@@ -15,6 +15,7 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
     onAddWord(newText);
     setInputText("");
   };
+  const inputButtonDisabled = inputText === "";
 
   return (
     <View style={styles.container}>
@@ -35,31 +36,24 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
           }}
         />
       </View>
-      <TouchableOpacity
-        style={styles.inputButton}
-        onPress={() => {
-          if (inputText != "") onSubmitEditing(inputText);
+
+      <MaterialButton
+        disabled={inputButtonDisabled}
+        name="add"
+        onPress={() => onSubmitEditing(inputText)}
+        style={{
+          backgroundColor: BGWhite,
+          disabledCountourColor: DisabledGrey,
+          countourColor: CountourColor,
         }}
-        disabled={inputText === ""}
-      >
-        <MaterialIcons name="add" size={40} color="black" />
-      </TouchableOpacity>
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  inputButton: {
-    alignItems: "center",
-    borderColor: "black",
-    borderWidth: 2,
-    borderRadius: 15,
-    marginHorizontal: 5,
-    backgroundColor: UIGrey,
-  },
   container: {
     flex: 1,
-    marginVertical: 10,
     flexDirection: "row",
   },
   inputHolder: {
@@ -69,7 +63,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: UIGrey,
+    backgroundColor: BGWhite,
   },
   inputText: {
     fontSize: 20,
