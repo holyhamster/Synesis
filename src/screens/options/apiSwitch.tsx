@@ -1,11 +1,4 @@
-import {
-  DeviceEventEmitter,
-  Switch,
-  Text,
-  ToastAndroid,
-  TouchableHighlight,
-  View,
-} from "react-native";
+import { DeviceEventEmitter, ToastAndroid, View } from "react-native";
 import {
   DictionaryKeyRequirement,
   DictionaryType,
@@ -18,13 +11,14 @@ import {
   LoadCurrentDictionaryType,
   SaveCurrentDictionaryType,
 } from "../../dictionaries/dictionaryOptions";
+import TitledToggle from "../titledToggle";
 
-interface OptionsApiSwitchProps {
+interface ApiSwitchProps {
   navigation: OptionsProps["navigation"];
 }
 
 //List of toggles to switch API, pops up InputModal for API key
-export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
+export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
   const [currentDictionaryType, setCurrentDictionaryType] =
     React.useState<DictionaryType>();
 
@@ -90,27 +84,17 @@ export const OptionsApiSwitch: FC<OptionsApiSwitchProps> = ({ navigation }) => {
   return (
     <View>
       {apiTogglesData.map(({ name, state }) => (
-        <TouchableHighlight
+        <TitledToggle
           key={name}
-          onPress={() => onPressAPIToggle(name)}
-          style={{ padding: 10 }}
-          underlayColor={"white"}
-        >
-          <View style={{ flexDirection: "row", left: 20 }}>
-            <Switch
-              key={name}
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={"#f4f3f4"}
-              ios_backgroundColor="#3e3e3e"
-              onValueChange={() => onPressAPIToggle(name)}
-              value={state}
-            />
-            <Text>{name}</Text>
-          </View>
-        </TouchableHighlight>
+          onValueChange={(state) => {
+            onPressAPIToggle(name);
+          }}
+          state={state}
+          title={name}
+        />
       ))}
     </View>
   );
 };
 
-export default OptionsApiSwitch;
+export default ApiSwitch;
