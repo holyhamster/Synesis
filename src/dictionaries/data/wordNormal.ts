@@ -38,7 +38,8 @@ export function CalculateWeights(sum: number[]) {
   let valueSetAside = 0;
   let emptyDimensions = 0;
   const emptyDimensionPenalty = 0.5;
-  for (let i = 0; i < dWeigh.length; i++) {
+  const ln = dWeigh.length;
+  for (let i = 0; i < ln; i++) {
     if (!sum[i]) {
       emptyDimensions += 1;
       valueSetAside += valueLeft * emptyDimensionPenalty;
@@ -50,10 +51,9 @@ export function CalculateWeights(sum: number[]) {
     }
   }
 
-  for (let i = 0; i < dWeigh.length; i++) {
-    if (sum[i] == 0) continue;
-    dWeigh[i] +=
-      (valueLeft + valueSetAside) / (dWeigh.length - emptyDimensions);
+  for (let i = 0; i < ln; i++) {
+    if (!sum[i]) continue;
+    dWeigh[i] += (valueLeft + valueSetAside) / (ln - emptyDimensions);
   }
 
   return dWeigh.map((weight, index) => (sum[index] ? weight / sum[index] : 0));
