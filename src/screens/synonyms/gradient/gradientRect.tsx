@@ -33,15 +33,19 @@ const GradientRect: FC<GradientRectProps> = ({
   colorNormal,
   animationLength,
 }) => {
-  //TODO: remove background
-  const background = useRef("white");
   const setBackgroundToDominant = (colorNormal) => {
     let backgroundColorValue = 0;
+    let ibackground;
     for (let i = 0; i < colorNormal.length; i++)
-      if (colorNormal[i].value > backgroundColorValue)
-        background.current = colorNormal[i].color;
+      if (colorNormal[i].value > backgroundColorValue) {
+        ibackground = colorNormal[i].color;
+        backgroundColorValue = colorNormal[i].value;
+      }
+    return ibackground;
   };
-
+  const background = useRef(
+    colorNormal ? setBackgroundToDominant(colorNormal) : "white"
+  );
   //reference to color gradient with ski's useValue hook for updating on UI thread
   const colors = useValue<string[]>([
     colorNormal[0].color ?? "white",
@@ -55,7 +59,7 @@ const GradientRect: FC<GradientRectProps> = ({
 
   //on colorNormal prop changing, calculate starting and ending animation points and que it
   useEffect(() => {
-    setBackgroundToDominant(colorNormal);
+    background.current = setBackgroundToDominant(colorNormal);
 
     const [newPosEnd, newColorsEnd] = colorNormal.toGradientValues();
     if (newPosEnd.length < 2 || newColorsEnd.length < 2) return;
@@ -117,7 +121,7 @@ const GradientRect: FC<GradientRectProps> = ({
 
   return (
     <Canvas
-      style={{ ...styles.canvas }}
+      style={{ ...styles.canvas, backgroundColor: background.current }}
       onLayout={layoutMeasured ? undefined : setDimensions}
     >
       <Rect x={0} y={0} width={rectWidth} height={rectHeight}>
