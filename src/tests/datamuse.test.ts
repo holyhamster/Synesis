@@ -3,7 +3,7 @@ import BuildDatamuse, {
   DatamuseParser,
   DatamuseFetcher,
 } from "../dictionaries/datamuse";
-import { Cross } from "../dictionaries/data/synonymCloud";
+import { CrossReference } from "../dictionaries/data/synonymCloud";
 import SynonymCollection from "../dictionaries/data/synonymCollection";
 
 const mockresponse = `[{"word":"list","score":5054},{"word":"lean","score":3439},{"word":"propensity","score":2071},{"word":"tilt","score":1472},{"word":"proclivity","score":1374},{"word":"inclination","score":1268},{"word":"tendency","score":1137},{"word":"inclined","score":903},{"word":"tilted","score":363},{"word":"canted","score":298},{"word":"atilt","score":277},{"word":"tipped","score":231},{"word":"unerect","score":29}]`;
@@ -34,5 +34,5 @@ test("datamuse crossing", async () => {
 
   await synDef1.Load(datamuseDictionary);
   await synDef2.Load(datamuseDictionary);
-  expect(Cross([synDef1, synDef2])).toBeTruthy();
+  expect(CrossReference([synDef1, synDef2])).toBeTruthy();
 });

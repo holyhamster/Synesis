@@ -1,23 +1,21 @@
-import { DisabledGrey, getFreeColor } from "../../colors";
+import { DisabledGrey } from "../../colors";
 import { APIReturnData } from "./apiResponse";
 import Dictionary from "../dictionary";
 
 //Synonym word with fetched api data
 export default class SynonymCollection {
   public Word: string;
-  constructor(word: string, takenColors: string[] = []) {
+  constructor(word: string, private color: string) {
     this.Word = NormalizeWord(word);
-    this.color = getFreeColor(takenColors);
   }
 
-  public dataSets: APIReturnData = [];
+  public definitionSets: APIReturnData = [];
   private set(value: APIReturnData) {
     this.wasFetched = true;
-    this.dataSets = value;
-    this.isEmpty = this.dataSets.length == 0;
+    this.definitionSets = value;
+    this.isEmpty = this.definitionSets.length == 0;
   }
 
-  private color: string;
   public get Color(): string {
     return this.IsEmpty ? DisabledGrey : this.color;
   }

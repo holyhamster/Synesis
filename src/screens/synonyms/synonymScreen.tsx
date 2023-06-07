@@ -5,8 +5,6 @@ import {
   StyleSheet,
   ToastAndroid,
   View,
-  ScrollView,
-  Button,
   ActivityIndicator,
   TextInput,
   DeviceEventEmitter,
@@ -26,7 +24,9 @@ import {
 } from "../../dictionaries/storageHandling";
 import WordListView from "./wordListView";
 import HintOverlay from "./hintOverlay";
-import SynonymCloud, { Cross } from "../../dictionaries/data/synonymCloud";
+import SynonymCloud, {
+  CrossReference,
+} from "../../dictionaries/data/synonymCloud";
 import * as Colors from "../../colors";
 import MaterialButton from "../materialButton";
 
@@ -35,11 +35,13 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
 
   //check if hinst need to be shown
   const [showingHint, setShowingHint] = React.useState(-1);
+  const [tileLayout, setTileLayout] = React.useState(false);
   useEffect(() => {
     GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
-      if (value) return;
-      SetStringInStorage(StringTypesEnum.WasLaunched, "yes");
-      setShowingHint(0);
+      if (!value) {
+        SetStringInStorage(StringTypesEnum.WasLaunched, "yes");
+        setShowingHint(0);
+      }
     });
   }, []);
 
@@ -61,18 +63,38 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
 
   //load default dictionary on loading component, add listener to changeApi event
   useEffect(() => {
-    GetCurrentDictionary().then((dict) => setCurrentDict(dict));
+    const loadDictionaryFromMemory = () =>
+      GetCurrentDictionary().then((dict) => setCurrentDict(dict));
+
+    loadDictionaryFromMemory();
     const subscription = DeviceEventEmitter.addListener(
       EventsEnum.ApiChanged,
-      () => GetCurrentDictionary().then((dict) => setCurrentDict(dict))
+      loadDictionaryFromMemory
     );
     return () => subscription.remove();
   }, []);
 
-  //entries are an array of prepared data for synonym list, updaded when synArray states change
+  useEffect(() => {
+    const setLayoutfromMemory = () => {
+      GetStringFromStorage(StringTypesEnum.TileLayout).then((value) => {
+        if (value && value != "") setTileLayout(true);
+        else setTileLayout(false);
+      });
+    };
+
+    setLayoutfromMemory();
+    const subscription = DeviceEventEmitter.addListener(
+      EventsEnum.LayoutChanged,
+      () => setLayoutfromMemory()
+    );
+
+    return () => subscription.remove();
+  });
+
+  //array of prepared crossreferenced data, updaded when synArray states change
   const clouds = useMemo(() => {
     const map = new Map<string, SynonymCloud>();
-    Cross(synArray).forEach((cloud) => map.set(cloud.name, cloud));
+    CrossReference(synArray).forEach((cloud) => map.set(cloud.name, cloud));
     return map;
   }, [synArray]);
 
@@ -85,18 +107,17 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
 
   const addWord = useCallback(
     (word: string) => {
-      const newSyn = new SynonymCollection(
-        word,
-        synArray.map((syn) => syn.Color)
-      );
+      const color = Colors.getFreeColor(synArray.map((syn) => syn.Color));
+      const newSynonym = new SynonymCollection(word, color);
 
-      if (
-        newSyn &&
-        newSyn.Word != "" &&
-        synArray.findIndex((definiton) => definiton.Word == newSyn.Word) == -1
-      ) {
-        setSynArray((previous) => [...previous, newSyn]);
-        loadSyn(newSyn, currentDict, forceSynArrayUpdate);
+      const EMPTY = !newSynonym || newSynonym.Word == "";
+      const ARRAY_HAS_WORD =
+        synArray.findIndex((definiton) => definiton.Word == newSynonym.Word) !=
+        -1;
+
+      if (!EMPTY && !ARRAY_HAS_WORD) {
+        setSynArray((previous) => [...previous, newSynonym]);
+        loadSyn(newSynonym, currentDict, forceSynArrayUpdate);
       }
     },
     [synArray, setSynArray, currentDict, forceSynArrayUpdate]
@@ -123,20 +144,13 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
         synonymsExist={synArray.length > 0}
       />
 
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        style={styles.synonymScroll}
-        fadingEdgeLength={1}
-        snapToEnd={true}
-        contentContainerStyle={styles.synonymScrollContainer}
-      >
-        <SynonymList
-          clouds={clouds}
-          colorMap={colorMap}
-          addWord={addWord}
-          highlightedWord={highlightedWord}
-        />
-      </ScrollView>
+      <SynonymList
+        clouds={clouds}
+        colorMap={colorMap}
+        addNewWord={addWord}
+        highlightedWord={highlightedWord}
+        tileLayout={tileLayout}
+      />
 
       <View style={styles.menuButton}>
         <MaterialButton
@@ -153,9 +167,11 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
           size="large"
         />
       </View>
-      <View style={{ backgroundColor: Colors.AccentColor, paddingVertical: 7 }}>
+
+      <View style={styles.selectedList}>
         <WordListView
-          synArray={synArray}
+          synonymArray={synArray}
+          selectedSynonym={highlightedWord}
           onClearButton={() => setSynArray([])}
           onWordPress={(word) => removeWord(word)}
           onLongPress={(word) => setHighlightedWord(word)}
@@ -172,10 +188,10 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
 const styles = StyleSheet.create({
   connectionIndicator: {
     position: "absolute",
-    left: 10,
-    top: 40,
-    width: 50,
-    height: 50,
+    right: 10,
+    top: 50,
+    width: 40,
+    height: 40,
     zIndex: 1,
   },
 
@@ -189,7 +205,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: "row",
     backgroundColor: Colors.AccentColor,
-    paddingVertical: 7,
+    paddingVertical: 5,
   },
 
   menuButton: {
@@ -199,12 +215,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
 
-  synonymScroll: {
-    zIndex: 1,
-  },
-  synonymScrollContainer: {
-    flexGrow: 1,
-    columnGap: 100,
+  selectedList: {
+    backgroundColor: Colors.AccentColor,
     paddingVertical: 5,
   },
 });

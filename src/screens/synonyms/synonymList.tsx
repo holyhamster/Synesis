@@ -1,5 +1,5 @@
 import React, { FC, useMemo, useEffect, useRef, memo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { FlatList, ScrollView, StyleSheet } from "react-native";
 import ColorNormal from "./gradient/colorNormal";
 import {
   Transition,
@@ -12,12 +12,13 @@ import SynonymWord from "./synonymWord";
 interface SynonymListProps {
   clouds: Map<string, SynonymCloud>;
   colorMap: Map<string, string>;
-  addWord: (newWord: string) => void;
   highlightedWord?: string;
+  addNewWord: (newWord: string) => void;
+  tileLayout?: boolean;
 }
 
 const SynonymList: FC<SynonymListProps> = memo(
-  ({ clouds, colorMap, addWord, highlightedWord }) => {
+  ({ clouds, colorMap, highlightedWord, addNewWord, tileLayout }) => {
     //console.log(`SynonymList render`);
 
     const [colorNormals, setColorNormals] = useState(
@@ -26,16 +27,17 @@ const SynonymList: FC<SynonymListProps> = memo(
 
     const [sortedEntries, setSortedEntries] = useState<SynonymCloud[]>([]);
     const transitionView = useRef<TransitioningView>();
+
     useEffect(() => {
       const newSorted = Array.from(clouds.values());
       if (highlightedWord?.length > 0)
         newSorted.sort(
           (a, b) =>
-            (a.connections.get(highlightedWord) / a.sum || 0) -
-            (b.connections.get(highlightedWord) / b.sum || 0)
+            (a.GetWordMap().get(highlightedWord) || 0) -
+            (b.GetWordMap().get(highlightedWord) || 0)
         );
-      setSortedEntries(newSorted.slice(-wordLimit, -1));
-      transitionView.current?.animateNextTransition();
+      setSortedEntries(newSorted);
+      if (tileLayout) transitionView.current?.animateNextTransition();
     }, [clouds, highlightedWord]);
 
     useEffect(() => {
@@ -48,36 +50,63 @@ const SynonymList: FC<SynonymListProps> = memo(
       setColorNormals(map);
     }, [colorMap, clouds]);
 
-    const transitionInProgress = useRef(false);
+    const renderCloud = (cloud) => {
+      const colorNormal = colorNormals.get(cloud.name);
+      if (colorNormal?.length > 0)
+        return (
+          <SynonymWord
+            key={cloud.name}
+            word={cloud.name}
+            colorNormal={colorNormal}
+            onPress={() => addNewWord(cloud.name)}
+          />
+        );
+      return <></>;
+    };
 
-    return (
-      <Transitioning.View
-        ref={transitionView}
-        style={styles.list}
-        transition={transition}
-      >
-        {sortedEntries.map((entry) => {
-          const colorNormal = colorNormals.get(entry.name);
-          if (colorNormal?.length > 0)
-            return (
-              <SynonymWord
-                key={entry.name}
-                word={entry.name}
-                colorNormal={colorNormal}
-                onPress={() => {
-                  addWord(entry.name);
-                  //if (transView.current) transView.current.animateNextTransition();
-                }}
-              />
-            );
-        })}
-      </Transitioning.View>
-    );
+    if (tileLayout) {
+      return (
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          style={styles.synonymScroll}
+          fadingEdgeLength={1}
+          snapToEnd={true}
+          contentContainerStyle={styles.synonymScrollContainer}
+        >
+          <Transitioning.View
+            ref={transitionView}
+            style={styles.list}
+            transition={transition}
+          >
+            {sortedEntries
+              .slice(-wordLimit, -1)
+              .map((cloud) => renderCloud(cloud))}
+          </Transitioning.View>
+        </ScrollView>
+      );
+    } else
+      return (
+        <FlatList
+          data={sortedEntries}
+          keyExtractor={(entry) => entry.name}
+          renderItem={({ item }) => renderCloud(item)}
+          keyboardShouldPersistTaps="handled"
+          fadingEdgeLength={1}
+          snapToEnd={true}
+          contentContainerStyle={styles.flatListContainer}
+        />
+      );
   }
 );
-const wordLimit = 30;
+const wordLimit = 40;
 
 const styles = StyleSheet.create({
+  flatListContainer: {
+    flexGrow: 1,
+    gap: 5,
+    columnGap: 100,
+    paddingVertical: 5,
+  },
   list: {
     flex: 1,
     flexDirection: "row",
@@ -86,6 +115,14 @@ const styles = StyleSheet.create({
     alignContent: "center",
     alignItems: "center",
     gap: 7,
+  },
+  synonymScroll: {
+    zIndex: 1,
+  },
+  synonymScrollContainer: {
+    flexGrow: 1,
+    columnGap: 100,
+    paddingVertical: 5,
   },
   word: {
     fontSize: 20,

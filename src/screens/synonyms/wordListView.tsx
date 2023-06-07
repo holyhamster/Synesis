@@ -11,7 +11,8 @@ import * as Haptics from "expo-haptics";
 import MaterialButton from "../materialButton";
 
 interface WordListProps {
-  synArray: SynonymCollection[];
+  synonymArray: SynonymCollection[];
+  selectedSynonym: string;
   onWordPress: (word: string) => void;
   onLongPress: (word: string) => void;
   onClearButton: () => void;
@@ -19,7 +20,8 @@ interface WordListProps {
 
 /*List of selected words, calls input events on presses*/
 const WordListView: FC<WordListProps> = ({
-  synArray,
+  synonymArray: synArray,
+  selectedSynonym,
   onWordPress,
   onLongPress,
   onClearButton,
@@ -30,54 +32,55 @@ const WordListView: FC<WordListProps> = ({
   const transRef = React.useRef<TransitioningView>();
   //todo: add haptic feedback to long press with react-native-haptic-feedback
   return (
-    <>
-      <Transitioning.View
-        style={styles.selectedContainer}
-        transition={transition}
-        ref={transRef}
-      >
-        <View style={styles.selectedList}>
-          {synArray.map((synDef, index) => (
-            <Pressable
-              key={index}
-              android_ripple={{
-                color: "white",
-              }}
-              style={{ backgroundColor: synDef.Color }}
-              onPress={() => onWordPress(synDef.Word)}
-              onLongPress={() => {
-                onLongPress(synDef.Word);
-                Haptics.selectionAsync();
-              }}
-            >
-              <Text style={styles.text}>{synDef.Word}</Text>
-            </Pressable>
-          ))}
-        </View>
+    <Transitioning.View
+      style={styles.container}
+      transition={transition}
+      ref={transRef}
+    >
+      <View style={styles.list}>
+        {synArray.map((synDef, index) => (
+          <Pressable
+            key={index}
+            android_ripple={{
+              color: "white",
+            }}
+            style={{
+              backgroundColor: synDef.Color,
+              ...(synDef.Word == selectedSynonym ? styles.selected : []),
+            }}
+            onPress={() => onWordPress(synDef.Word)}
+            onLongPress={() => {
+              onLongPress(synDef.Word);
+              Haptics.selectionAsync();
+            }}
+          >
+            <Text style={styles.text}>{synDef.Word}</Text>
+          </Pressable>
+        ))}
+      </View>
 
-        <MaterialButton
-          disabled={synArray.length == 0}
-          name="clear"
-          onPress={onClearButton}
-          style={{
-            backgroundColor: Colors.BGWhite,
-            disabledCountourColor: Colors.DisabledGrey,
-            countourColor: Colors.CountourColor,
-          }}
-        />
-      </Transitioning.View>
-    </>
+      <MaterialButton
+        disabled={synArray.length == 0}
+        name="clear"
+        onPress={onClearButton}
+        style={{
+          backgroundColor: Colors.BGWhite,
+          disabledCountourColor: Colors.DisabledGrey,
+          countourColor: Colors.CountourColor,
+        }}
+      />
+    </Transitioning.View>
   );
 };
 
 const styles = StyleSheet.create({
   text: { fontSize: 20, marginHorizontal: 7, marginVertical: 5 },
-  selectedContainer: {
+  container: {
     paddingVertical: 5,
     flexDirection: "row",
     alignItems: "flex-end",
   },
-  selectedList: {
+  list: {
     flex: 5,
     flexDirection: "row",
     justifyContent: "flex-start",
@@ -87,6 +90,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginHorizontal: 5,
     gap: 5,
+  },
+  selected: {
+    borderWidth: 3,
+    borderColor: Colors.CountourColor,
+    margin: -3,
   },
 });
 

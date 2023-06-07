@@ -1,114 +1,94 @@
-import { SynonymDefinition, SynonymSet } from "./apiResponse";
 import SynonymCollection from "./synonymCollection";
-import WordNormal from "./wordNormal";
+import WordNormal, { CalculateWeights } from "./wordNormal";
 
 //Synonym word crossreferences with other words
 export default class SynonymCloud {
-  connections: Map<string, number> = new Map();
-  sum: number = 0;
+  connections = new Map<string, number[]>();
+
+  connectionSum = [];
   public constructor(public name: string) {}
 
-  public addConnection(word: string, strength: number = 1) {
-    this.sum += strength;
-    const connection = this.connections.get(word) | 0;
-    this.connections.set(word, connection + strength);
-    this.vectorCache = undefined;
+  public addConnection(word: string, order: number) {
+    this.voidCache();
+    const existingDimensions = this.connections.get(word) || [];
+    if (existingDimensions.length == 0)
+      this.connections.set(word, existingDimensions);
+    existingDimensions[order] = (existingDimensions[order] || 0) + 1;
+    while (this.connectionSum.length <= order) this.connectionSum.push(0);
+    this.connectionSum[order] += 1;
+  }
+
+  private voidCache() {
+    this.normalCache = undefined;
+    this.wordMapCache = undefined;
   }
 
   //gets a map of a normalized n-dimensional vector of connections ["word1": 0.25, "word2": 0.5, "word3": 0.25]
-  private vectorCache: WordNormal;
+  private normalCache: WordNormal;
   public GetWordNormal() {
-    if (!this.vectorCache) {
-      this.vectorCache = new WordNormal();
-      this.connections.forEach((val, key) =>
-        this.vectorCache.push({
-          word: key,
-          value: parseFloat((val / this.sum).toFixed(5)),
-        })
+    if (!this.normalCache)
+      this.normalCache = WordNormal.Build(this.connections, this.connectionSum);
+    return WordNormal.Copy(this.normalCache);
+  }
+
+  //translates word normal into a map
+  private wordMapCache;
+  public GetWordMap() {
+    if (!this.wordMapCache) {
+      this.wordMapCache = new Map();
+      this.GetWordNormal().forEach(({ word, value }) =>
+        this.wordMapCache.set(word, value)
       );
     }
-    return new WordNormal(this.vectorCache);
+    return this.wordMapCache;
   }
 }
 
-export function Cross(collections: SynonymCollection[]): SynonymCloud[] {
-  const map: Map<string, SynonymCloud> = new Map();
-  // init a cloud for every word in collections and link it to its parent word
+//build clouds of synonyms from given collections
+export function CrossReference(collections: SynonymCollection[]) {
+  const allKeywords = collections.map(
+    (synonymCollection) => synonymCollection.Word
+  );
+
+  const map = new Map<string, SynonymCloud>();
+
+  const getCloud = (word) => {
+    let cloud = map.get(word);
+    if (!cloud) {
+      cloud = new SynonymCloud(word);
+      map.set(word, cloud);
+    }
+    return cloud;
+  };
+
+  const addConnectionToSet = (
+    set: Set<string>,
+    keyWord: string,
+    order: number
+  ) => {
+    for (const setWord of set) {
+      if (allKeywords.includes(setWord)) continue;
+      getCloud(setWord).addConnection(keyWord, order);
+    }
+  };
+
   for (const collection of collections)
-    for (const definition of collection.dataSets)
-      for (const synonymList of definition)
-        for (const word of synonymList) {
-          if (map.has(word)) continue;
-          const entry = new SynonymCloud(word);
-          entry.addConnection(collection.Word);
-          map.set(word, entry);
+    for (const definition of collection.definitionSets)
+      for (const synonymSet of definition)
+        for (const word of synonymSet) {
+          //if found a word from main list
+          if (allKeywords.includes(word)) {
+            //go through synonym list, add 1st degree connection
+            addConnectionToSet(synonymSet, word, 1);
+
+            for (const synonymList2 of definition) {
+              if (synonymList2 === synonymSet) continue;
+              addConnectionToSet(synonymList2, word, 2);
+            }
+          } else {
+            getCloud(word).addConnection(collection.Word, 0);
+          }
         }
 
-  for (let i = 0; i < collections.length; i++) {
-    for (let j = i + 1; j < collections.length; j++) {
-      for (const iDefinition of collections[i].dataSets) {
-        for (const jDefinition of collections[j].dataSets) {
-          weightDefinitions(
-            map,
-            collections[i].Word,
-            iDefinition,
-            collections[j].Word,
-            jDefinition
-          );
-        }
-      }
-    }
-  }
-
-  collections.forEach((syns) => map.delete(syns.Word));
-  return Array.from(map.values()).sort(function (a, b) {
-    return a.sum - b.sum;
-  });
-}
-
-function weightDefinitions(
-  map: Map<string, SynonymCloud>,
-  iWord: string,
-  iDefinition: SynonymDefinition,
-  jWord: string,
-  jDefinition: SynonymDefinition
-) {
-  for (const iSynonymList of iDefinition) {
-    if (iSynonymList.has(jWord)) {
-      changeWeight(map, iDefinition, jWord);
-      changeWeight(map, iSynonymList, jWord);
-    }
-
-    for (const jSynonymList of jDefinition) {
-      if (jSynonymList.has(iWord)) {
-        changeWeight(map, jDefinition, iWord);
-        changeWeight(map, jSynonymList, iWord);
-      }
-      for (const word of iSynonymList) {
-        if (jSynonymList.has(word)) {
-          changeWeight(map, iDefinition, jWord);
-          changeWeight(map, iSynonymList, jWord);
-          changeWeight(map, jDefinition, iWord);
-          changeWeight(map, jSynonymList, iWord);
-        }
-      }
-    }
-  }
-}
-
-function changeWeight(
-  map: Map<string, SynonymCloud>,
-  data: SynonymDefinition | SynonymSet,
-  iWord: string
-) {
-  if (Array.isArray(data))
-    data.forEach((elemet) => changeWeight(map, elemet, iWord));
-  else data.forEach((word) => map.get(word)?.addConnection(iWord));
-}
-
-export function NormalizeWord(word: string) {
-  return word
-    .replace(/[^a-z0-9\s-]/gi, "")
-    .trim()
-    .toLowerCase();
+  return Array.from(map.values());
 }
