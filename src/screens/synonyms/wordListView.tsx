@@ -1,7 +1,6 @@
 import React, { FC } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import SynonymCollection from "../../dictionaries/data/synonymCollection";
-import * as Colors from "../../colors";
 import {
   Transition,
   Transitioning,
@@ -9,44 +8,46 @@ import {
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import MaterialButton from "../materialButton";
+import * as Colors from "../../colors";
 
+//UI element listing selected synonyms
 interface WordListProps {
   synonymArray: SynonymCollection[];
-  selectedSynonym: string;
+  highlighted: string;
   onWordPress: (word: string) => void;
   onLongPress: (word: string) => void;
   onClearButton: () => void;
 }
 
-/*List of selected words, calls input events on presses*/
 const WordListView: FC<WordListProps> = ({
-  synonymArray: synArray,
-  selectedSynonym,
+  synonymArray,
+  highlighted,
   onWordPress,
   onLongPress,
   onClearButton,
 }) => {
+  const transitionReference = React.useRef<TransitioningView>();
+
   React.useEffect(() => {
-    transRef.current.animateNextTransition();
-  }, [synArray]);
-  const transRef = React.useRef<TransitioningView>();
-  //todo: add haptic feedback to long press with react-native-haptic-feedback
+    transitionReference.current.animateNextTransition();
+  }, [synonymArray]);
+
   return (
     <Transitioning.View
       style={styles.container}
       transition={transition}
-      ref={transRef}
+      ref={transitionReference}
     >
       <View style={styles.list}>
-        {synArray.map((synDef, index) => (
+        {synonymArray.map((synDef, index) => (
           <Pressable
             key={index}
             android_ripple={{
-              color: "white",
+              color: Colors.BGWhite,
             }}
             style={{
               backgroundColor: synDef.Color,
-              ...(synDef.Word == selectedSynonym ? styles.selected : []),
+              ...(synDef.Word == highlighted ? styles.highlighted : []),
             }}
             onPress={() => onWordPress(synDef.Word)}
             onLongPress={() => {
@@ -60,7 +61,7 @@ const WordListView: FC<WordListProps> = ({
       </View>
 
       <MaterialButton
-        disabled={synArray.length == 0}
+        disabled={synonymArray.length == 0}
         name="clear"
         onPress={onClearButton}
         style={{
@@ -91,7 +92,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     gap: 5,
   },
-  selected: {
+
+  highlighted: {
     borderWidth: 3,
     borderColor: Colors.CountourColor,
     margin: -3,
