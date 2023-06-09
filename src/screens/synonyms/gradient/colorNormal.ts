@@ -5,6 +5,7 @@ export default class ColorNormal extends Array<{
   color: string;
   value: number;
 }> {
+  public IsValid = false;
   constructor(wordNormal: WordNormal, colorMap: Map<string, string>) {
     let validated = wordNormal.length > 0 && colorMap.size > 0;
     const array = wordNormal.map((val) => {
@@ -13,6 +14,7 @@ export default class ColorNormal extends Array<{
       return { color: wordColor, value: val.value };
     });
     super(...array);
+    this.IsValid = validated;
   }
 
   isEqual(normal: ColorNormal) {
