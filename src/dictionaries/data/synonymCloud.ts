@@ -4,12 +4,11 @@ import WordNormal, { CalculateWeights } from "./wordNormal";
 //Synonym word crossreferences with other words
 export default class SynonymCloud {
   connections = new Map<string, number[]>();
-
-  connectionSum = [];
+  connectionSum = []; //calculated in parallel for performance
   public constructor(public name: string) {}
 
   public addConnection(word: string, order: number) {
-    this.voidCache();
+    this.nullCache();
     const existingDimensions = this.connections.get(word) || [];
     if (existingDimensions.length == 0)
       this.connections.set(word, existingDimensions);
@@ -18,7 +17,7 @@ export default class SynonymCloud {
     this.connectionSum[order] += 1;
   }
 
-  private voidCache() {
+  private nullCache() {
     this.normalCache = undefined;
     this.wordMapCache = undefined;
   }
@@ -41,6 +40,16 @@ export default class SynonymCloud {
       );
     }
     return this.wordMapCache;
+  }
+
+  public static GetSorted(clouds: SynonymCloud[], word: string) {
+    const result = Array.from(clouds);
+    if (!word || word == "") return result;
+    result.sort(
+      (a, b) =>
+        (a.GetWordMap().get(word) || 0) - (b.GetWordMap().get(word) || 0)
+    );
+    return result;
   }
 }
 
