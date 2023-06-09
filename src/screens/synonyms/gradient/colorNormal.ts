@@ -1,5 +1,6 @@
 import WordNormal from "../../../dictionaries/data/wordNormal";
 
+// normal vector with colors as axis
 // [{color:"red", value:.5}, {color:"blue", value:.5}]
 export default class ColorNormal extends Array<{
   color: string;
@@ -39,5 +40,18 @@ export default class ColorNormal extends Array<{
     }
 
     return [location, colors];
+  }
+
+  getDominantColor() {
+    let backgroundColorValue = 0;
+    let ibackground: string = undefined;
+
+    this.forEach((pair) => {
+      if (pair.value > backgroundColorValue) {
+        ibackground = pair.color;
+        backgroundColorValue = pair.value;
+      }
+    });
+    return ibackground;
   }
 }
