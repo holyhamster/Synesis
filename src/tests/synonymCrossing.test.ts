@@ -2,7 +2,9 @@ import { DisabledGrey } from "../colors";
 import { APIResponse } from "../dictionaries/data/apiResponse";
 import BuildDatamuse from "../dictionaries/datamuse";
 import Dictionary from "../dictionaries/dictionary";
-import { CrossReference } from "../dictionaries/data/synonymCloud";
+import SynonymCloud, {
+  CrossReference,
+} from "../dictionaries/data/synonymCloud";
 import SynonymCollection from "../dictionaries/data/synonymCollection";
 const mockSynSets = new Map<string, Set<string>[][]>();
 
@@ -35,36 +37,33 @@ mockDictionary.GetSynonyms = async (string: string) =>
 
 test("synonym initiation", async () => {
   const word = "hand";
-  let synDef = new SynonymCollection(word, "red");
+  let synDef = new SynonymCollection(word);
   await synDef.Load(mockDictionary);
   synDef.WasFetched;
   expect(synDef.WasFetched).toBe(true);
   expect(synDef.IsEmpty).toBe(false);
-  expect(synDef.Color).not.toBe(DisabledGrey);
   expect(synDef.definitionSets).toBe(mockSynSets.get(word));
 });
 
 test("synonym crossing", async () => {
-  let synDef1 = new SynonymCollection("hand", "red");
+  let synDef1 = new SynonymCollection("hand");
   await synDef1.Load(mockDictionary);
-  let synDef2 = new SynonymCollection("reach", "red");
+  let synDef2 = new SynonymCollection("reach");
   await synDef2.Load(mockDictionary);
 
   const results = CrossReference([synDef1, synDef2]);
   //expect(results).toBe(1);
-  expect(results[results.length - 1].name).toBe("pass");
+  expect(results[results.length - 1].name).toBe("ambit");
 });
 
 test("live test", async () => {
   var dict = BuildDatamuse();
-  const syn1 = new SynonymCollection("good", "red");
-  const syn2 = new SynonymCollection("angelic", "blue");
+  const syn1 = new SynonymCollection("good");
+  const syn2 = new SynonymCollection("angelic");
   await syn1.Load(dict);
   await syn2.Load(dict);
 
-  const results = CrossReference([syn1, syn2]);
-  results.forEach((cloud) =>
-    console.log(cloud.name, cloud.connections, cloud.GetWordNormal())
-  );
-  expect(results).toBe("pass");
+  const results = SynonymCloud.GetSorted(CrossReference([syn1, syn2]), "good");
+
+  expect(results[0].name).toBe("sweet");
 });
