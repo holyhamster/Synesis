@@ -1,18 +1,15 @@
 import { StatusBar } from "expo-status-bar";
-import React, { FC, useEffect, useMemo, useCallback, useState } from "react";
+import React, { FC, useCallback, useEffect, useRef, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   StyleSheet,
-  ToastAndroid,
   View,
   ActivityIndicator,
-  TextInput,
   DeviceEventEmitter,
 } from "react-native";
 
 import WordInputField from "./wordInputField";
 import SynonymList from "./synonymList";
-import SynonymCollection from "../../dictionaries/data/synonymCollection";
 import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
@@ -24,11 +21,9 @@ import {
 } from "../../dictionaries/storageHandling";
 import WordListView from "./wordListView";
 import HintOverlay from "./hintOverlay";
-import SynonymCloud, {
-  CrossReference,
-} from "../../dictionaries/data/synonymCloud";
 import * as Colors from "../../colors";
 import MaterialButton from "../materialButton";
+import { useSynonyms } from "../../dictionaries/data/useSynonyms";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   //console.log("screen render");
@@ -45,23 +40,8 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     });
   }, []);
 
-  const [synArray, setSynArray] = React.useState<SynonymCollection[]>([]);
-  const forceSynArrayUpdate = useCallback(
-    () => setSynArray((previous) => Array.from(previous)),
-    [setSynArray]
-  );
-
-  //instance of API dictionary, update existing synonym list if API changes
-  const [currentDict, setCurrentDict] = React.useState<Dictionary>();
-  useEffect(() => {
-    synArray.forEach((syn) =>
-      loadSyn(syn, currentDict, () =>
-        setSynArray((previous) => Array.from(previous))
-      )
-    );
-  }, [currentDict]);
-
   //load default dictionary on loading component, add listener to changeApi event
+  const [currentDict, setCurrentDict] = React.useState<Dictionary>();
   useEffect(() => {
     const loadDictionaryFromMemory = () =>
       GetCurrentDictionary().then((dict) => setCurrentDict(dict));
@@ -73,6 +53,21 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     );
     return () => subscription.remove();
   }, []);
+
+  const [highlightedWord, setHighlightedWord] = useState("");
+  const onWordRemoval = useCallback(
+    (removedWord) => {
+      setHighlightedWord((previous) =>
+        previous == removedWord ? "" : previous
+      );
+    },
+    [setHighlightedWord]
+  );
+
+  const { synArray, addWord, removeWord, clearWords } = useSynonyms(
+    currentDict,
+    onWordRemoval
+  );
 
   useEffect(() => {
     const setLayoutfromMemory = () => {
@@ -91,49 +86,12 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     return () => subscription.remove();
   });
 
-  //array of prepared crossreferenced data, updaded when synArray states change
-  const clouds = useMemo(() => {
-    const map = new Map<string, SynonymCloud>();
-    CrossReference(synArray).forEach((cloud) => map.set(cloud.name, cloud));
-    return map;
-  }, [synArray]);
-
-  const [highlightedWord, setHighlightedWord] = useState("");
-  const colorMap = useMemo(() => {
-    const map = new Map<string, string>();
-    synArray.forEach((synDef) => map.set(synDef.Word, synDef.Color));
-    return map;
-  }, [synArray]);
-
-  const addWord = useCallback(
-    (word: string) => {
-      const color = Colors.getFreeColor(synArray.map((syn) => syn.Color));
-      const newSynonym = new SynonymCollection(word, color);
-
-      const EMPTY = !newSynonym || newSynonym.Word == "";
-      const ARRAY_HAS_WORD =
-        synArray.findIndex((definiton) => definiton.Word == newSynonym.Word) !=
-        -1;
-
-      if (!EMPTY && !ARRAY_HAS_WORD) {
-        setSynArray((previous) => [...previous, newSynonym]);
-        loadSyn(newSynonym, currentDict, forceSynArrayUpdate);
-      }
-    },
-    [synArray, setSynArray, currentDict, forceSynArrayUpdate]
+  const colorRef = useRef(new Map<string, string>());
+  colorRef.current = rebuildColorMap(
+    colorRef.current,
+    synArray.map((element) => element.Word)
   );
 
-  const removeWord = useCallback(
-    (Word: string) => {
-      const index = synArray.findIndex((synDef) => synDef.Word == Word);
-      if (index < 0) return;
-      setSynArray([...synArray.slice(0, index), ...synArray.slice(index + 1)]);
-      if (highlightedWord == Word) setHighlightedWord("");
-    },
-    [synArray, setSynArray]
-  );
-
-  const inputRef = React.useRef<TextInput>();
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
@@ -145,8 +103,8 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
       />
 
       <SynonymList
-        clouds={clouds}
-        colorMap={colorMap}
+        synArray={synArray.filter((syn) => syn.WasFetched && !syn.IsEmpty)}
+        colorMap={colorRef.current}
         addNewWord={addWord}
         highlightedWord={highlightedWord}
         tileLayout={tileLayout}
@@ -171,15 +129,16 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
       <View style={styles.selectedList}>
         <WordListView
           synonymArray={synArray}
-          selectedSynonym={highlightedWord}
-          onClearButton={() => setSynArray([])}
+          colorMap={colorRef.current}
+          highlighted={highlightedWord}
+          onClearButton={() => clearWords()}
           onWordPress={(word) => removeWord(word)}
           onLongPress={(word) => setHighlightedWord(word)}
         />
       </View>
 
       <View style={styles.inputContainer}>
-        <WordInputField inputRef={inputRef} onAddWord={addWord} />
+        <WordInputField onAddWord={addWord} />
       </View>
     </SafeAreaView>
   );
@@ -221,19 +180,20 @@ const styles = StyleSheet.create({
   },
 });
 
-async function loadSyn(
-  syn: SynonymCollection,
-  currentDict: Dictionary,
-  updateCallback: () => void
-) {
-  const onFail = (message) => {
-    ToastAndroid.show(message, ToastAndroid.LONG);
-    updateCallback();
-  };
+function rebuildColorMap(oldMap: Map<string, string>, words: string[]) {
+  const takenColors = new Set<string>();
+  oldMap.forEach((color, word) => {
+    if (words.includes(word)) takenColors.add(color);
+  });
 
-  return syn.Load(currentDict, updateCallback, onFail);
+  const newColormap = new Map<string, string>();
+  words.forEach((word) => {
+    const color =
+      oldMap.get(word) || Colors.getFreeColor(Array.from(takenColors));
+    newColormap.set(word, color);
+    takenColors.add(color);
+  });
+  return newColormap;
 }
 
 export default SynonymScreen;
-
-const mock = `[{"name":"right","connections":{},"sum":1},{"name":"well","connections":{},"sum":1},{"name":"sound","connections":{},"sum":1},{"name":"keen","connections":{},"sum":1},{"name":"great","connections":{},"sum":1},{"name":"best","connections":{},"sum":1},{"name":"close","connections":{},"sum":1},{"name":"kind","connections":{},"sum":1},{"name":"effective","connections":{},"sum":1},{"name":"fine","connections":{},"sum":1},{"name":"cool","connections":{},"sum":1},{"name":"swell","connections":{},"sum":1},{"name":"just","connections":{},"sum":1},{"name":"complete","connections":{},"sum":1},{"name":"nice","connections":{},"sum":1},{"name":"safe","connections":{},"sum":1},{"name":"hot","connections":{},"sum":1},{"name":"secure","connections":{},"sum":1},{"name":"genuine","connections":{},"sum":1},{"name":"fresh","connections":{},"sum":1},{"name":"adept","connections":{},"sum":1},{"name":"benevolent","connections":{},"sum":1},{"name":"neat","connections":{},"sum":1},{"name":"solid","connections":{},"sum":1},{"name":"expert","connections":{},"sum":1},{"name":"superior","connections":{},"sum":1},{"name":"bully","connections":{},"sum":1},{"name":"full","connections":{},"sum":1},{"name":"beneficial","connections":{},"sum":1},{"name":"gracious","connections":{},"sum":1},{"name":"serious","connections":{},"sum":1},{"name":"healthy","connections":{},"sum":1},{"name":"proficient","connections":{},"sum":1},{"name":"near","connections":{},"sum":1},{"name":"intellectual","connections":{},"sum":1},{"name":"dear","connections":{},"sum":1},{"name":"ample","connections":{},"sum":1},{"name":"suitable","connections":{},"sum":1},{"name":"righteous","connections":{},"sum":1},{"name":"dandy","connections":{},"sum":1},{"name":"thoroughly","connections":{},"sum":1},{"name":"virtuous","connections":{},"sum":1},{"name":"nifty","connections":{},"sum":1},{"name":"sunday","connections":{},"sum":1},{"name":"salutary","connections":{},"sum":1},{"name":"ripe","connections":{},"sum":1},{"name":"superb","connections":{},"sum":1},{"name":"operative","connections":{},"sum":1},{"name":"upright","connections":{},"sum":1},{"name":"dependable","connections":{},"sum":1},{"name":"acceptable","connections":{},"sum":1},{"name":"beneficent","connections":{},"sum":1},{"name":"goodness","connections":{},"sum":1},{"name":"groovy","connections":{},"sum":1},{"name":"fortunate","connections":{},"sum":1},{"name":"honorable","connections":{},"sum":1},{"name":"satisfactory","connections":{},"sum":1},{"name":"advantageous","connections":{},"sum":1},{"name":"reputable","connections":{},"sum":1},{"name":"cracking","connections":{},"sum":1},{"name":"opportune","connections":{},"sum":1},{"name":"kindly","connections":{},"sum":1},{"name":"peachy","connections":{},"sum":1},{"name":"beatific","connections":{},"sum":1},{"name":"angelic","connections":{},"sum":1},{"name":"respectable","connections":{},"sum":1},{"name":"skillful","connections":{},"sum":1},{"name":"smashing","connections":{},"sum":1},{"name":"skilful","connections":{},"sum":1},{"name":"pleasing","connections":{},"sum":1},{"name":"skilled","connections":{},"sum":1},{"name":"estimable","connections":{},"sum":1},{"name":"bang-up","connections":{},"sum":1},{"name":"discriminating","connections":{},"sum":1},{"name":"healthful","connections":{},"sum":1},{"name":"soundly","connections":{},"sum":1},{"name":"redemptive","connections":{},"sum":1},{"name":"practiced","connections":{},"sum":1},{"name":"angelical","connections":{},"sum":1},{"name":"in effect","connections":{},"sum":1},{"name":"saintly","connections":{},"sum":1},{"name":"in force","connections":{},"sum":1},{"name":"openhearted","connections":{},"sum":1},{"name":"slap-up","connections":{},"sum":1},{"name":"unspoiled","connections":{},"sum":1},{"name":"corking","connections":{},"sum":1},{"name":"goody-goody","connections":{},"sum":1},{"name":"goodish","connections":{},"sum":1},{"name":"sainted","connections":{},"sum":1},{"name":"good-hearted","connections":{},"sum":1},{"name":"unspoilt","connections":{},"sum":1},{"name":"well-behaved","connections":{},"sum":1},{"name":"sunday-go-to-meeting","connections":{},"sum":1},{"name":"good enough","connections":{},"sum":1},{"name":"saintlike","connections":{},"sum":1},{"name":"go-to-meeting","connections":{},"sum":1},{"name":"well behaved","connections":{},"sum":1}]`;
