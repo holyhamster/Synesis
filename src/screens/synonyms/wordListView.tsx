@@ -13,6 +13,7 @@ import * as Colors from "../../colors";
 //UI element listing selected synonyms
 interface WordListProps {
   synonymArray: SynonymCollection[];
+  colorMap: Map<string, string>;
   highlighted: string;
   onWordPress: (word: string) => void;
   onLongPress: (word: string) => void;
@@ -21,6 +22,7 @@ interface WordListProps {
 
 const WordListView: FC<WordListProps> = ({
   synonymArray,
+  colorMap,
   highlighted,
   onWordPress,
   onLongPress,
@@ -39,25 +41,31 @@ const WordListView: FC<WordListProps> = ({
       ref={transitionReference}
     >
       <View style={styles.list}>
-        {synonymArray.map((synDef, index) => (
-          <Pressable
-            key={index}
-            android_ripple={{
-              color: Colors.BGWhite,
-            }}
-            style={{
-              backgroundColor: synDef.Color,
-              ...(synDef.Word == highlighted ? styles.highlighted : []),
-            }}
-            onPress={() => onWordPress(synDef.Word)}
-            onLongPress={() => {
-              onLongPress(synDef.Word);
-              Haptics.selectionAsync();
-            }}
-          >
-            <Text style={styles.text}>{synDef.Word}</Text>
-          </Pressable>
-        ))}
+        {synonymArray.map((synDef, index) => {
+          const color =
+            !synDef.WasFetched || synDef.IsEmpty
+              ? Colors.DisabledGrey
+              : colorMap.get(synDef.Word) || Colors.BGWhite;
+          return (
+            <Pressable
+              key={index}
+              android_ripple={{
+                color: Colors.BGWhite,
+              }}
+              style={{
+                backgroundColor: color,
+                ...(synDef.Word == highlighted ? styles.highlighted : []),
+              }}
+              onPress={() => onWordPress(synDef.Word)}
+              onLongPress={() => {
+                onLongPress(synDef.Word);
+                Haptics.selectionAsync();
+              }}
+            >
+              <Text style={styles.text}>{synDef.Word}</Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <MaterialButton

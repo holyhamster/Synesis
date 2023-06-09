@@ -1,11 +1,10 @@
-import { DisabledGrey } from "../../colors";
 import { APIReturnData } from "./apiResponse";
 import Dictionary from "../dictionary";
 
 //Synonym word with fetched api data
 export default class SynonymCollection {
   public Word: string;
-  constructor(word: string, private color: string) {
+  constructor(word: string) {
     this.Word = NormalizeWord(word);
   }
 
@@ -14,10 +13,6 @@ export default class SynonymCollection {
     this.wasFetched = true;
     this.definitionSets = value;
     this.isEmpty = this.definitionSets.length == 0;
-  }
-
-  public get Color(): string {
-    return this.IsEmpty ? DisabledGrey : this.color;
   }
 
   public async Load(
