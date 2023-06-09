@@ -4,11 +4,10 @@ import { BGWhite, CountourColor, DisabledGrey } from "../../colors";
 import MaterialButton from "../materialButton";
 
 interface WordInputProps {
-  inputRef: React.RefObject<TextInput>;
   onAddWord: (word: string) => void;
 }
 
-const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
+const WordInputField: FC<WordInputProps> = ({ onAddWord }) => {
   const [inputText, setInputText] = React.useState<string>("");
 
   const onSubmitEditing = (newText: string) => {
@@ -22,7 +21,6 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord, inputRef }) => {
       <View style={styles.inputHolder}>
         <TextInput
           style={styles.inputText}
-          ref={inputRef}
           autoFocus={true}
           placeholder=" enter a new word"
           blurOnSubmit={true}
