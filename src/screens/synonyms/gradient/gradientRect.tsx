@@ -34,8 +34,6 @@ const GradientRect: FC<GradientRectProps> = ({
   animationLength,
   size,
 }) => {
-  //console.log("rect", debugName, colorNormal);
-
   const background = useRef(getDominantBackground(colorNormal));
   //reference to color gradient with ski's useValue hook for updating on UI thread
   const colors = useValue<string[]>([]);
@@ -115,7 +113,6 @@ const GradientRect: FC<GradientRectProps> = ({
   });
 
   useValueEffect(canvasSize, (v) => {
-    console.log("here");
     rectWidth.current = v.width;
     rectHeight.current = v.height;
   });
