@@ -1,75 +1,65 @@
+import React, { FC, useEffect, useRef } from "react";
+import { StyleSheet } from "react-native";
 import {
-  AnimatedProp,
   Canvas,
   LinearGradient,
   Rect,
   SkSize,
   mix,
+  useComputedValue,
   useSharedValueEffect,
   useValue,
+  useValueEffect,
   vec,
 } from "@shopify/react-native-skia";
-import React, { FC, useEffect, useRef } from "react";
-import { StyleProp, StyleSheet, ViewStyle } from "react-native";
 import {
   useDerivedValue,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+
 import ColorNormal from "./colorNormal";
 import { calculateAnimationTargets, trimAnimationArrays } from "./gradient";
 
 interface GradientRectProps {
-  style?: StyleProp<ViewStyle>;
   colorNormal: ColorNormal;
-  rectWidth: number;
-  rectHeight: number;
   animationLength?: number;
+  size?: { height: number; width: number };
 }
 
-//rectangle with animated color gradient
+//Takes in a Color normal in ["red":0.5, "blue":0.5] form, animates transition to it
+//if height
 const GradientRect: FC<GradientRectProps> = ({
-  style,
   colorNormal,
   animationLength,
+  size,
 }) => {
-  const setBackgroundToDominant = (colorNormal) => {
-    let backgroundColorValue = 0;
-    let ibackground;
-    for (let i = 0; i < colorNormal.length; i++)
-      if (colorNormal[i].value > backgroundColorValue) {
-        ibackground = colorNormal[i].color;
-        backgroundColorValue = colorNormal[i].value;
-      }
-    return ibackground;
-  };
-  const background = useRef(
-    colorNormal ? setBackgroundToDominant(colorNormal) : "white"
-  );
+  //console.log("rect", debugName, colorNormal);
+
+  const background = useRef(getDominantBackground(colorNormal));
   //reference to color gradient with ski's useValue hook for updating on UI thread
-  const colors = useValue<string[]>([
-    colorNormal[0].color ?? "white",
-    colorNormal[0].color ?? "white",
-  ]);
+  const colors = useValue<string[]>([]);
 
   //gradient positions are interpolated between start and end with the help of Progress value
-  const posStart = useSharedValue<number[]>([0, 1]);
-  const posEnd = useSharedValue<number[]>([0, 1]);
+  const posStart = useSharedValue<number[]>([]);
+  const posEnd = useSharedValue<number[]>([]);
   const posProgress = useSharedValue(1);
 
   //on colorNormal prop changing, calculate starting and ending animation points and que it
   useEffect(() => {
-    background.current = setBackgroundToDominant(colorNormal);
-
+    background.current = getDominantBackground(colorNormal);
+    if (!colorNormal?.IsValid) return;
     const [newPosEnd, newColorsEnd] = colorNormal.toGradientValues();
     if (newPosEnd.length < 2 || newColorsEnd.length < 2) return;
 
-    if (animationLength == 0) {
+    const setAnimationToEndState = () => {
       colors.current = newColorsEnd;
-      posStart.value = newPosEnd;
       posEnd.value = newPosEnd;
-      posValue.current = newPosEnd;
       posProgress.value = 1;
+    };
+
+    if (animationLength == 0) {
+      setAnimationToEndState();
       return;
     }
 
@@ -80,20 +70,24 @@ const GradientRect: FC<GradientRectProps> = ({
         ? posEnd.value
         : lerpArray(posProgress.value, posStart.value, posEnd.value);
     //remove empty sequences from previous transitions
-    trimAnimationArrays(newPosStart, newColorStart);
+    try {
+      trimAnimationArrays(newPosStart, newColorStart);
 
-    [posStart.value, posEnd.value, colors.current] = calculateAnimationTargets(
-      newPosStart,
-      newPosEnd,
-      newColorStart,
-      newColorsEnd
-    );
-
-    //reset interpolating value and start animation
-    posProgress.value = 0;
-    posProgress.value = withTiming(1, {
-      duration: isNaN(animationLength) ? 1000 : animationLength,
-    });
+      [posStart.value, posEnd.value, colors.current] =
+        calculateAnimationTargets(
+          newPosStart,
+          newPosEnd,
+          newColorStart,
+          newColorsEnd
+        );
+      //reset interpolating value and start animation
+      posProgress.value = 0;
+      posProgress.value = withTiming(1, {
+        duration: isNaN(animationLength) ? 1000 : animationLength,
+      });
+    } catch {
+      setAnimationToEndState();
+    }
   }, [colorNormal]);
 
   //calculate new gradient values on UI thread
@@ -107,23 +101,35 @@ const GradientRect: FC<GradientRectProps> = ({
     posValue.current = derivedPos.value;
   }, posProgress);
 
-  //extract width and height out of canvas with an onLayout call
-  const rectWidth = useValue(0);
-  const rectHeight = useValue(0);
-  const gradientEnd = useValue(vec(0, 0));
-  const [layoutMeasured, setLayoutMeasured] = React.useState(false);
-  const setDimensions = ({ nativeEvent }) => {
-    rectWidth.current = nativeEvent.layout.width;
-    rectHeight.current = nativeEvent.layout.height;
-    gradientEnd.current = vec(rectWidth.current, 0);
-    setLayoutMeasured(true);
-  };
+  const rectWidth = useValue(size?.width || 0);
+  const rectHeight = useValue(size?.height || 0);
+  const gradientEnd = useComputedValue(
+    () => vec(rectWidth.current, 0),
+    [rectWidth]
+  );
+
+  //gets set by canvas onSize event, on change sets rectWidth and rectHeight
+  const canvasSize = useValue<SkSize>({
+    height: size?.height || 0,
+    width: size?.width || 0,
+  });
+
+  useValueEffect(canvasSize, (v) => {
+    console.log("here");
+    rectWidth.current = v.width;
+    rectHeight.current = v.height;
+  });
+
+  const styles = StyleSheet.create({
+    canvas: {
+      position: "absolute",
+      width: size ? size.width : "100%",
+      height: size ? size.height : "100%",
+    },
+  });
 
   return (
-    <Canvas
-      style={{ ...styles.canvas, backgroundColor: background.current }}
-      onLayout={layoutMeasured ? undefined : setDimensions}
-    >
+    <Canvas style={{ ...styles.canvas }} onSize={size ? undefined : canvasSize}>
       <Rect x={0} y={0} width={rectWidth} height={rectHeight}>
         <LinearGradient
           start={vec(0, 0)}
@@ -135,13 +141,6 @@ const GradientRect: FC<GradientRectProps> = ({
     </Canvas>
   );
 };
-const styles = StyleSheet.create({
-  canvas: {
-    position: "absolute",
-    width: "100%",
-    height: "100%",
-  },
-});
 
 //interpolate arrays of values, can be run on UI thread
 function lerpArray(progress: number, start: number[], end: number[]) {
@@ -151,5 +150,18 @@ function lerpArray(progress: number, start: number[], end: number[]) {
   for (let i = 0; i < ln; i++) result.push(mix(progress, start[i], end[i]));
   return result;
 }
+
+const getDominantBackground = (normal: ColorNormal) => {
+  let backgroundColorValue = 0;
+  let ibackground = "white";
+
+  normal?.forEach((pair) => {
+    if (pair.value > backgroundColorValue) {
+      ibackground = pair.color;
+      backgroundColorValue = pair.value;
+    }
+  });
+  return ibackground;
+};
 
 export default GradientRect;

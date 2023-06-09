@@ -1,49 +1,31 @@
-import React, { FC, memo, useRef, useState } from "react";
-import { Canvas, useTouchHandler } from "@shopify/react-native-skia";
-import {
-  StyleProp,
-  View,
-  Text,
-  TextStyle,
-  StyleSheet,
-  TouchableHighlight,
-} from "react-native";
+import React, { FC, memo, useState } from "react";
+import { View, Text, StyleSheet, TouchableHighlight } from "react-native";
 
 import ColorNormal from "./gradient/colorNormal";
 import GradientRect from "./gradient/gradientRect";
 
 interface SynonymWordProps {
-  style?: StyleProp<TextStyle>;
   word: string;
   colorNormal: ColorNormal;
-  onPress: () => void;
+  onPress: (word: string) => void;
 }
 
 //pressable tile with a word and a color gradient
 const SynonymWord: FC<SynonymWordProps> = memo(
   ({ colorNormal, word, onPress }) => {
-    const rectWidth = Math.max(
-      styles.word.fontSize * Math.max(word.length, 1) - 40,
-      20
-    );
-    const rectHeight = 25;
+    //console.log("synWord", word);
 
-    //tracks if the touch started and ended inside the area and calls onPress
+    //tracks when touch started and ended to display a view with opacity on top
     const [highlighted, setHighlighted] = useState(false);
-    const [wasPressed, setPressed] = useState(false);
 
-    let background = "white";
-    let backgroundColorValue = 0;
-    for (let i = 0; i < colorNormal.length; i++)
-      if (colorNormal[i].value > backgroundColorValue)
-        background = colorNormal[i].color;
-    //background = "transparent"; //HERE
-    const highlightOpacity = highlighted && !wasPressed ? 0.5 : 0;
+    let background = colorNormal?.getDominantColor() ?? "white";
+
+    const highlightOpacity = highlighted ? 0.5 : 0;
+
     return (
       <TouchableHighlight
         onPress={() => {
-          setPressed(true);
-          onPress();
+          onPress(word);
         }}
         onHideUnderlay={() => setHighlighted(false)}
         onShowUnderlay={() => setHighlighted(true)}
@@ -51,14 +33,10 @@ const SynonymWord: FC<SynonymWordProps> = memo(
         <View
           style={{
             ...styles.container,
-            //backgroundColor: background,
+            backgroundColor: background,
           }}
         >
-          <GradientRect
-            colorNormal={colorNormal}
-            rectHeight={rectHeight}
-            rectWidth={rectWidth}
-          />
+          <GradientRect colorNormal={colorNormal} />
 
           <View
             style={{
@@ -72,6 +50,7 @@ const SynonymWord: FC<SynonymWordProps> = memo(
     );
   }
 );
+
 const styles = StyleSheet.create({
   container: {},
   word: {
