@@ -12,4 +12,5 @@ export enum StringTypesEnum {
   WasLaunched = "WasLaunched",
   DisabledVisulats = "DisabledVisulats",
   TileLayout = "TileLayout",
+  TileCount = "TileCount",
 }
