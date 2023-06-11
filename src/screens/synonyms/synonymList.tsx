@@ -1,5 +1,10 @@
 import React, { FC, useEffect, useRef, useState } from "react";
-import { FlatList, ScrollView, StyleSheet } from "react-native";
+import {
+  DeviceEventEmitter,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+} from "react-native";
 import ColorNormal from "./gradient/colorNormal";
 import {
   Transition,
@@ -11,44 +16,76 @@ import SynonymCloud, {
 } from "../../dictionaries/data/synonymCloud";
 import SynonymWord from "./synonymWord";
 import SynonymCollection from "../../dictionaries/data/synonymCollection";
+import { EventsEnum } from "../../events";
+import {
+  GetStringFromStorage,
+  StringTypesEnum,
+} from "../../dictionaries/storageHandling";
 
 interface SynonymListProps {
-  synArray: SynonymCollection[];
+  synonymArray: SynonymCollection[];
   colorMap: Map<string, string>;
   highlightedWord?: string;
   addNewWord: (newWord: string) => void;
-  tileLayout?: boolean;
 }
 
 const SynonymList: FC<SynonymListProps> = ({
-  synArray,
+  synonymArray: synArray,
   colorMap,
   highlightedWord,
   addNewWord,
-  tileLayout,
 }) => {
   //console.log(`SynonymList render`);
+  const [tileLimit, setTileLimit] = useState(defaultLimit);
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      EventsEnum.TileCountChanged,
+      () =>
+        GetStringFromStorage(StringTypesEnum.TileCount).then((value) =>
+          setTileLimit(parseInt(value) ?? defaultLimit)
+        )
+    );
+    return () => subscription.remove();
+  }, []);
+
+  const [tileLayout, setTileLayout] = React.useState(false);
+  useEffect(() => {
+    const setLayoutfromMemory = () =>
+      GetStringFromStorage(StringTypesEnum.TileLayout).then((value) => {
+        if (value && value != "") setTileLayout(true);
+        else setTileLayout(false);
+      });
+
+    setLayoutfromMemory();
+    const subscription = DeviceEventEmitter.addListener(
+      EventsEnum.LayoutChanged,
+      setLayoutfromMemory
+    );
+
+    return () => subscription.remove();
+  }, []);
+
+  const transitionView = useRef<TransitioningView>();
+  const animateTransition = () =>
+    transitionView.current?.animateNextTransition();
+
+  const [clouds, setClouds] = useState<SynonymCloud[]>([]);
+  useEffect(() => {
+    const newClouds = CrossReference(synArray);
+    setClouds(SynonymCloud.GetSorted(newClouds, highlightedWord));
+    animateTransition();
+  }, [synArray, setClouds]);
+
+  useEffect(() => {
+    setClouds((previous) => SynonymCloud.GetSorted(previous, highlightedWord));
+  }, [highlightedWord]);
 
   const [colorNormals, setColorNormals] = useState(
     new Map<string, ColorNormal>()
   );
-
-  const [sortedEntries, setSortedEntries] = useState<SynonymCloud[]>([]);
-  const transitionView = useRef<TransitioningView>();
-
   useEffect(() => {
-    const newClouds = CrossReference(synArray);
-    setSortedEntries(SynonymCloud.GetSorted(newClouds, highlightedWord));
-    if (tileLayout) transitionView.current?.animateNextTransition();
-  }, [synArray]);
-
-  useEffect(() => {
-    setSortedEntries(SynonymCloud.GetSorted(sortedEntries, highlightedWord));
-  }, [highlightedWord]);
-
-  useEffect(() => {
-    setColorNormals(rebuildNormals(sortedEntries, colorMap, colorNormals));
-  }, [sortedEntries, colorMap]);
+    setColorNormals((previous) => rebuildNormals(clouds, colorMap, previous));
+  }, [clouds, colorMap]);
 
   const renderCloud = (cloud: SynonymCloud) => {
     return (
@@ -60,7 +97,8 @@ const SynonymList: FC<SynonymListProps> = ({
       />
     );
   };
-  if (tileLayout) {
+  //TODO: animation of flatlist layout
+  if (true || tileLayout) {
     return (
       <ScrollView
         keyboardShouldPersistTaps="handled"
@@ -74,14 +112,14 @@ const SynonymList: FC<SynonymListProps> = ({
           style={styles.list}
           transition={transition}
         >
-          {sortedEntries.slice(-wordLimit).map((cloud) => renderCloud(cloud))}
+          {clouds.slice(-tileLimit).map((cloud) => renderCloud(cloud))}
         </Transitioning.View>
       </ScrollView>
     );
   } else
     return (
       <FlatList
-        data={sortedEntries}
+        data={clouds}
         keyExtractor={(entry) => entry.name}
         renderItem={({ item }) => renderCloud(item)}
         keyboardShouldPersistTaps="handled"
@@ -91,7 +129,8 @@ const SynonymList: FC<SynonymListProps> = ({
       />
     );
 };
-const wordLimit = 40;
+
+const defaultLimit = 30;
 
 const styles = StyleSheet.create({
   flatListContainer: {
@@ -139,6 +178,7 @@ function rebuildNormals(
 const transition = (
   <Transition.Together>
     <Transition.In type="fade" durationMs={500} />
+    <Transition.Change durationMs={100} />
     <Transition.Out type="fade" durationMs={500} />
   </Transition.Together>
 );

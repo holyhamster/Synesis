@@ -12,6 +12,7 @@ import {
 import { EventsEnum } from "../../events";
 import TitledToggle from "../titledToggle";
 import * as Colors from "../../colors";
+import TileCountSwitch from "./tileCountSwitch";
 
 const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
   enum AccordionEnum {
@@ -27,28 +28,29 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
 
   const accordionContents = {
     [AccordionEnum.Display]: (
-      <View>
-        <TitledToggle
-          title="Tile layout"
-          onValueChange={(state) => {
-            setTileLayout(state);
-            SetStringInStorage(StringTypesEnum.TileLayout, state ? "yes" : "");
-            DeviceEventEmitter.emit(EventsEnum.LayoutChanged);
-          }}
-          state={tileLayout}
-        />
-      </View>
+      <>
+        <TileCountSwitch />
+        {
+          //add option after fixing FlatList animation
+          /*<View>
+          <TitledToggle
+            title="Tile layout"
+            onValueChange={(state) => {
+              setTileLayout(state);
+              SetStringInStorage(
+                StringTypesEnum.TileLayout,
+                state ? "yes" : ""
+              );
+              DeviceEventEmitter.emit(EventsEnum.LayoutChanged);
+            }}
+            state={tileLayout}
+          />
+        </View>*/
+        }
+      </>
     ),
-    [AccordionEnum.API]: (
-      <View>
-        <ApiSwitch navigation={navigation} />
-      </View>
-    ),
-    [AccordionEnum.About]: (
-      <View>
-        <Text>Some info about the app</Text>
-      </View>
-    ),
+    [AccordionEnum.API]: <ApiSwitch navigation={navigation} />,
+    [AccordionEnum.About]: <Text>Some info about the app</Text>,
   };
 
   const renderAccordionHeader = (title, index, isActive) => {
@@ -72,8 +74,10 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
     );
   };
 
-  const renderAccordionTitle = (title) => {
-    return accordionContents[title] || null;
+  const renderAccordingContent = (title) => {
+    return (
+      <View style={styles.content}>{accordionContents[title]}</View> || null
+    );
   };
 
   const [activeSessions, setActiveSessions] = React.useState<number[]>([]);
@@ -88,7 +92,7 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
         sections={Object.values(AccordionEnum)}
         activeSections={activeSessions}
         renderHeader={renderAccordionHeader}
-        renderContent={renderAccordionTitle}
+        renderContent={renderAccordingContent}
         onChange={updateSections}
       />
     </View>
@@ -104,6 +108,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
+  content: { left: 20, paddingVertical: 20 },
   title: {
     marginLeft: 16,
     fontSize: 18,

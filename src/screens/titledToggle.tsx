@@ -28,7 +28,7 @@ const TitledToggle: FC<TitledToggleProps> = ({
 const styles = StyleSheet.create({
   text: { left: 20, fontSize: 16 },
   touchable: { padding: 10 },
-  view: { flexDirection: "row", left: 20, alignItems: "center" },
+  view: { flexDirection: "row", alignItems: "center" },
 });
 
 export default TitledToggle;

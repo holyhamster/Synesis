@@ -3,4 +3,5 @@ export enum EventsEnum {
   ApiKeyEntered = "api-key-entered",
   ApiChanged = "api-changed",
   LayoutChanged = "layout-changed",
+  TileCountChanged = "tile-count-changed",
 }

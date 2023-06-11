@@ -30,7 +30,7 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
 
   //check if hinst need to be shown
   const [showingHint, setShowingHint] = React.useState(-1);
-  const [tileLayout, setTileLayout] = React.useState(false);
+
   useEffect(() => {
     GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
       if (!value) {
@@ -69,23 +69,6 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     onWordRemoval
   );
 
-  useEffect(() => {
-    const setLayoutfromMemory = () => {
-      GetStringFromStorage(StringTypesEnum.TileLayout).then((value) => {
-        if (value && value != "") setTileLayout(true);
-        else setTileLayout(false);
-      });
-    };
-
-    setLayoutfromMemory();
-    const subscription = DeviceEventEmitter.addListener(
-      EventsEnum.LayoutChanged,
-      () => setLayoutfromMemory()
-    );
-
-    return () => subscription.remove();
-  });
-
   const colorRef = useRef(new Map<string, string>());
   colorRef.current = rebuildColorMap(
     colorRef.current,
@@ -103,11 +86,10 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
       />
 
       <SynonymList
-        synArray={synArray.filter((syn) => syn.WasFetched && !syn.IsEmpty)}
+        synonymArray={synArray.filter((syn) => syn.WasFetched && !syn.IsEmpty)}
         colorMap={colorRef.current}
         addNewWord={addWord}
         highlightedWord={highlightedWord}
-        tileLayout={tileLayout}
       />
 
       <View style={styles.menuButton}>
