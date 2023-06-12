@@ -60,20 +60,18 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
     [OptionSectionsEnum.API]: <ApiSwitch navigation={navigation} />,
     [OptionSectionsEnum.About]: <Text>Some info about the app</Text>,
     [OptionSectionsEnum.Hints]: (
-      <View style={{ alignSelf: "flex-start" }}>
-        <TouchableOpacity
-          style={styles.resetHints}
-          onPress={() => {
-            Haptics.selectionAsync();
-            SetStringInStorage(StringTypesEnum.WasLaunched, "").then(() =>
-              DeviceEventEmitter.emit(EventsEnum.HintsReset)
-            );
-          }}
-        >
-          <MaterialIcons name="check-circle-outline" size={40} />
-          <Text style={{ fontSize: 15 }}>Reset Hints</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity
+        style={styles.resetHints}
+        onPress={() => {
+          Haptics.selectionAsync();
+          SetStringInStorage(StringTypesEnum.WasLaunched, "").then(() =>
+            DeviceEventEmitter.emit(EventsEnum.HintsReset)
+          );
+        }}
+      >
+        <MaterialIcons name="replay-circle-filled" size={40} />
+        <Text style={{ fontSize: 15 }}>Reset Hints</Text>
+      </TouchableOpacity>
     ),
   };
 
@@ -134,7 +132,6 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   resetHints: {
-    alignSelf: "flex-start",
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
