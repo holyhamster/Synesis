@@ -2,10 +2,11 @@ import {
   NativeStackScreenProps,
   createNativeStackNavigator,
 } from "@react-navigation/native-stack";
+import { OptionSectionsEnum } from "./screens/options/optionsScreen";
 
 export type StackParamList = {
   Home: undefined;
-  Options: undefined;
+  Options: { unravel?: OptionSectionsEnum };
   InputModal: {
     eventName: string;
     varName: string;
