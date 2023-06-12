@@ -35,12 +35,21 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [showingHint, setShowingHint] = React.useState(-1);
 
   useEffect(() => {
-    GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
-      if (!value) {
-        SetStringInStorage(StringTypesEnum.WasLaunched, "yes");
-        setShowingHint(0);
-      }
-    });
+    const loadHints = () =>
+      GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
+        if (!value) {
+          SetStringInStorage(StringTypesEnum.WasLaunched, "yes");
+          setShowingHint(0);
+        }
+      });
+
+    loadHints();
+    const subscription = DeviceEventEmitter.addListener(
+      EventsEnum.HintsReset,
+      loadHints
+    );
+
+    return () => subscription.remove();
   }, []);
 
   //load default dictionary on loading component, add listener to changeApi event
