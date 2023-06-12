@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, DeviceEventEmitter } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Accordion from "react-native-collapsible/Accordion";
-import React, { FC, useState } from "react";
+import React, { FC, useEffect, useState } from "react";
 import ApiSwitch from "./apiSwitch";
 import { OptionsProps } from "../../navigation";
 import {
@@ -14,12 +14,13 @@ import TitledToggle from "../titledToggle";
 import * as Colors from "../../colors";
 import TileCountSwitch from "./tileCountSwitch";
 
-const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
-  enum AccordionEnum {
-    Display = "Display",
-    API = "API",
-    About = "About",
-  }
+const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
+  const { unravel } = route.params ?? { unravel: undefined };
+
+  useEffect(() => {
+    const propIndex = Object.keys(OptionSectionsEnum).indexOf(unravel);
+    if (propIndex >= 0) setActiveSessions([propIndex]);
+  }, []);
 
   const [tileLayout, setTileLayout] = useState(false);
   GetStringFromStorage(StringTypesEnum.TileLayout).then((val) => {
@@ -27,7 +28,7 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
   });
 
   const accordionContents = {
-    [AccordionEnum.Display]: (
+    [OptionSectionsEnum.Display]: (
       <>
         <TileCountSwitch />
         {
@@ -49,8 +50,8 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
         }
       </>
     ),
-    [AccordionEnum.API]: <ApiSwitch navigation={navigation} />,
-    [AccordionEnum.About]: <Text>Some info about the app</Text>,
+    [OptionSectionsEnum.API]: <ApiSwitch navigation={navigation} />,
+    [OptionSectionsEnum.About]: <Text>Some info about the app</Text>,
   };
 
   const renderAccordionHeader = (title, index, isActive) => {
@@ -89,7 +90,7 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation }) => {
     <View>
       <Accordion
         underlayColor={Colors.BGWhite}
-        sections={Object.values(AccordionEnum)}
+        sections={Object.values(OptionSectionsEnum)}
         activeSections={activeSessions}
         renderHeader={renderAccordionHeader}
         renderContent={renderAccordingContent}
@@ -115,5 +116,11 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+
+export enum OptionSectionsEnum {
+  Display = "Display",
+  API = "API",
+  About = "About",
+}
 
 export default OptionsScreen;
