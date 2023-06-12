@@ -23,17 +23,19 @@ import {
 } from "../../dictionaries/storageHandling";
 
 interface SynonymListProps {
-  synonymArray: SynonymCollection[];
+  synonyms: SynonymCollection[];
   colorMap: Map<string, string>;
   highlightedWord?: string;
   addNewWord: (newWord: string) => void;
+  showTooltip?: (text: string) => void;
 }
 
 const SynonymList: FC<SynonymListProps> = ({
-  synonymArray: synArray,
+  synonyms,
   colorMap,
   highlightedWord,
   addNewWord,
+  showTooltip,
 }) => {
   //console.log(`SynonymList render`);
   const [tileLimit, setTileLimit] = useState(defaultLimit);
@@ -71,10 +73,13 @@ const SynonymList: FC<SynonymListProps> = ({
 
   const [clouds, setClouds] = useState<SynonymCloud[]>([]);
   useEffect(() => {
-    const newClouds = CrossReference(synArray);
-    setClouds(SynonymCloud.GetSorted(newClouds, highlightedWord));
+    const newClouds = SynonymCloud.GetSorted(
+      CrossReference(synonyms),
+      highlightedWord
+    );
+    setClouds(newClouds);
     animateTransition();
-  }, [synArray, setClouds]);
+  }, [synonyms, setClouds]);
 
   useEffect(() => {
     setClouds((previous) => SynonymCloud.GetSorted(previous, highlightedWord));
@@ -86,6 +91,11 @@ const SynonymList: FC<SynonymListProps> = ({
   useEffect(() => {
     setColorNormals((previous) => rebuildNormals(clouds, colorMap, previous));
   }, [clouds, colorMap]);
+
+  useEffect(() => {
+    const hiddenCount = Math.max(clouds.length - tileLimit, 0);
+    showTooltip?.(hiddenCount == 0 ? "" : `Hidden: ${hiddenCount}`);
+  }, [showTooltip, tileLimit, clouds]);
 
   const renderCloud = (cloud: SynonymCloud) => {
     return (
@@ -133,6 +143,11 @@ const SynonymList: FC<SynonymListProps> = ({
 const defaultLimit = 30;
 
 const styles = StyleSheet.create({
+  countTooltip: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+  },
   flatListContainer: {
     flexGrow: 1,
     gap: 5,

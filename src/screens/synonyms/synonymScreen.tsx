@@ -6,6 +6,8 @@ import {
   View,
   ActivityIndicator,
   DeviceEventEmitter,
+  Text,
+  TouchableOpacity,
 } from "react-native";
 
 import WordInputField from "./wordInputField";
@@ -24,6 +26,7 @@ import HintOverlay from "./hintOverlay";
 import * as Colors from "../../colors";
 import MaterialButton from "../materialButton";
 import { useSynonyms } from "../../dictionaries/data/useSynonyms";
+import { OptionSectionsEnum } from "../options/optionsScreen";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   //console.log("screen render");
@@ -41,10 +44,12 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   }, []);
 
   //load default dictionary on loading component, add listener to changeApi event
-  const [currentDict, setCurrentDict] = React.useState<Dictionary>();
+  const [dictionary, setDictionary] = React.useState<Dictionary>();
   useEffect(() => {
     const loadDictionaryFromMemory = () =>
-      GetCurrentDictionary().then((dict) => setCurrentDict(dict));
+      GetCurrentDictionary().then((newDictionary) =>
+        setDictionary(newDictionary)
+      );
 
     loadDictionaryFromMemory();
     const subscription = DeviceEventEmitter.addListener(
@@ -64,17 +69,18 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     [setHighlightedWord]
   );
 
-  const { synArray, addWord, removeWord, clearWords } = useSynonyms(
-    currentDict,
+  const { synonyms, addWord, removeWord, clearWords } = useSynonyms(
+    dictionary,
     onWordRemoval
   );
 
   const colorRef = useRef(new Map<string, string>());
   colorRef.current = rebuildColorMap(
     colorRef.current,
-    synArray.map((element) => element.Word)
+    synonyms.map((element) => element.Word)
   );
 
+  const [listTooltip, setListTooltip] = useState("");
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
@@ -82,14 +88,17 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
       <HintOverlay
         onHintPress={() => setShowingHint((previous) => (previous += 1))}
         currentHintID={showingHint}
-        synonymsExist={synArray.length > 0}
+        synonymsExist={synonyms.length > 0}
       />
 
       <SynonymList
-        synonymArray={synArray.filter((syn) => syn.WasFetched && !syn.IsEmpty)}
+        synonyms={synonyms.filter(
+          (synonym) => synonym.WasFetched && !synonym.IsEmpty
+        )}
         colorMap={colorRef.current}
         addNewWord={addWord}
         highlightedWord={highlightedWord}
+        showTooltip={(tooltip) => setListTooltip(tooltip)}
       />
 
       <View style={styles.menuButton}>
@@ -98,22 +107,36 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
           name="settings"
           style={{ size: 50 }}
         />
+
+        {listTooltip && (
+          <TouchableOpacity
+            style={styles.hiddenElementsTooltip}
+            onPress={() => {
+              navigation.navigate("Options", {
+                unravel: OptionSectionsEnum.Display,
+              });
+            }}
+          >
+            <Text>{listTooltip}</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View style={styles.connectionIndicator}>
         <ActivityIndicator
           pointerEvents="none"
-          animating={synArray.find((synDef) => !synDef.WasFetched) != null}
+          animating={synonyms.find((synonym) => !synonym.WasFetched) != null}
           size="large"
+          color={Colors.CountourColor}
         />
       </View>
 
       <View style={styles.selectedList}>
         <WordListView
-          synonymArray={synArray}
+          synonymArray={synonyms}
           colorMap={colorRef.current}
           highlighted={highlightedWord}
-          onClearButton={() => clearWords()}
+          onClearButton={clearWords}
           onWordPress={(word) => removeWord(word)}
           onLongPress={(word) => setHighlightedWord(word)}
         />
@@ -150,12 +173,22 @@ const styles = StyleSheet.create({
   },
 
   menuButton: {
+    flexDirection: "row",
     position: "absolute",
     left: 10,
     top: 50,
     zIndex: 1,
   },
 
+  hiddenElementsTooltip: {
+    left: 5,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderRadius: 15,
+    paddingHorizontal: 5,
+    backgroundColor: Colors.BGWhite,
+  },
   selectedList: {
     backgroundColor: Colors.AccentColor,
     paddingVertical: 5,
