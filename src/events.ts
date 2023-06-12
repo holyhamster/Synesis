@@ -4,4 +4,5 @@ export enum EventsEnum {
   ApiChanged = "api-changed",
   LayoutChanged = "layout-changed",
   TileCountChanged = "tile-count-changed",
+  HintsReset = "hints-reset",
 }
