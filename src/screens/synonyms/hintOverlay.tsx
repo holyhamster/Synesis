@@ -3,24 +3,22 @@ import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import HintView from "./hintsView";
 
 interface HintOverlayProps {
-  style?: StyleProp<ViewStyle>;
   currentHintID: number;
   synonymsExist: boolean;
   onHintPress: () => void;
 }
 
 const HintOverlay: FC<HintOverlayProps> = ({
-  style,
   currentHintID,
   synonymsExist,
   onHintPress,
 }) => {
   return (
-    <View style={[style, styles.overlay]} pointerEvents="box-none">
+    <View style={styles.overlay} pointerEvents="box-none">
       {currentHintID == 0 && (
         <HintView
-          style={{ ...styles.hint, bottom: 120, left: "5%", maxWidth: "90%" }}
-          hintText="Enter a word you're looking into"
+          style={{ ...styles.hint, bottom: 130 }}
+          hintText="Enter a word"
           onPress={onHintPress}
         />
       )}
@@ -29,19 +27,17 @@ const HintOverlay: FC<HintOverlayProps> = ({
         <HintView
           style={{
             ...styles.hint,
-            bottom: 120,
-            right: "5%",
-            maxWidth: "70%",
+            bottom: "50%",
           }}
-          hintText="Add/remove words to widen/remove the search!"
+          hintText="Add more related words"
           onPress={onHintPress}
         />
       )}
 
       {currentHintID == 2 && (
         <HintView
-          style={{ ...styles.hint, top: 80, left: "5%", maxWidth: "90%" }}
-          hintText="Select different API if you're not happy with the results"
+          style={{ ...styles.hint, bottom: 120 }}
+          hintText="Hold selected word to sort the results"
           onPress={onHintPress}
         />
       )}
@@ -56,14 +52,13 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    opacity: 0,
     justifyContent: "center",
     alignItems: "center",
     fontSize: 24,
-    zIndex: 2,
+    zIndex: 3,
   },
   hint: {
-    zIndex: 3,
+    zIndex: 4,
     position: "absolute",
   },
 });

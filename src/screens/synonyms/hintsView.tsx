@@ -9,17 +9,15 @@ import {
   ViewStyle,
 } from "react-native";
 
+import * as Colors from "../../colors";
+
 interface HintViewProps {
   style?: StyleProp<ViewStyle>;
   hintText: string;
   onPress: () => void;
 }
 
-const HintView: FC<HintViewProps> = ({
-  style: styleProp,
-  hintText,
-  onPress,
-}) => {
+const HintView: FC<HintViewProps> = ({ style, hintText, onPress }) => {
   const animFaded = React.useState(new Animated.Value(0))[0];
 
   React.useEffect(() => {
@@ -39,9 +37,9 @@ const HintView: FC<HintViewProps> = ({
   }, []);
 
   return (
-    <Animated.View style={[{ opacity: animFaded }, styles.view, styleProp]}>
+    <Animated.View style={[{ opacity: animFaded }, styles.view, style]}>
       <TouchableOpacity onPress={onPress}>
-        <Text style={{ fontSize: 20, flexWrap: "wrap" }}>{hintText}</Text>
+        <Text style={{ fontSize: 20 }}>{hintText}</Text>
       </TouchableOpacity>
     </Animated.View>
   );
@@ -49,8 +47,8 @@ const HintView: FC<HintViewProps> = ({
 
 const styles = StyleSheet.create({
   view: {
-    backgroundColor: "lightgrey",
-    borderColor: "white",
+    backgroundColor: Colors.BGWhite,
+    borderColor: Colors.CountourColor,
     borderRadius: 5,
     borderWidth: 1,
     padding: 6,
