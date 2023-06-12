@@ -5,59 +5,58 @@ import { ToastAndroid } from "react-native";
 
 //react hook that provides tools for interracting with synonym collections
 export function useSynonyms(
-  currentDict: Dictionary,
+  dictionary: Dictionary,
   onRemove?: (word: string) => void
 ) {
-  const [synonymArray, setSynonymArray] = React.useState<SynonymCollection[]>(
-    []
+  const [synonyms, setSynonyms] = React.useState<SynonymCollection[]>([]);
+
+  const forceUpdate = useCallback(
+    () => setSynonyms((previous) => Array.from(previous)),
+    [setSynonyms]
   );
 
   useEffect(() => {
-    synonymArray.forEach((syn) =>
-      fetchSynonym(syn, currentDict, () =>
-        setSynonymArray((previous) => Array.from(previous))
-      )
-    );
-  }, [currentDict]);
-
-  const forceSynArrayUpdate = useCallback(
-    () => setSynonymArray((previous) => Array.from(previous)),
-    [setSynonymArray]
-  );
+    setSynonyms([]);
+  }, [dictionary]);
 
   const addWord = useCallback(
     (word: string) => {
-      setSynonymArray((previous) => {
+      setSynonyms((previousSynonym) => {
         const newSynonym = new SynonymCollection(word);
         const EMPTY = !newSynonym || newSynonym.Word == "";
         const ARRAY_HAS_WORD =
-          synonymArray.findIndex(
+          previousSynonym.findIndex(
             (definiton) => definiton.Word == newSynonym.Word
           ) != -1;
         if (!EMPTY && !ARRAY_HAS_WORD) {
-          fetchSynonym(newSynonym, currentDict, forceSynArrayUpdate);
-          return [...previous, newSynonym];
+          fetchSynonym(newSynonym, dictionary, forceUpdate);
+          return [...previousSynonym, newSynonym];
         }
-        return previous;
+        return previousSynonym;
       });
     },
-    [setSynonymArray, currentDict, forceSynArrayUpdate]
+    [setSynonyms, dictionary, forceUpdate]
   );
 
   const removeWord = useCallback(
     (removedWord: string) => {
-      setSynonymArray((previous) => {
-        const index = previous.findIndex(({ Word }) => Word == removedWord);
-        if (index < 0) return previous;
+      setSynonyms((previousSynonyms) => {
+        const index = previousSynonyms.findIndex(
+          ({ Word }) => Word == removedWord
+        );
+        if (index < 0) return previousSynonyms;
         onRemove?.(removedWord);
-        return [...previous.slice(0, index), ...previous.slice(index + 1)];
+        return [
+          ...previousSynonyms.slice(0, index),
+          ...previousSynonyms.slice(index + 1),
+        ];
       });
     },
-    [setSynonymArray, onRemove]
+    [setSynonyms, onRemove]
   );
 
-  const clearWords = useCallback(() => setSynonymArray([]), [setSynonymArray]);
-  return { synArray: synonymArray, addWord, removeWord, clearWords };
+  const clearWords = useCallback(() => setSynonyms([]), [setSynonyms]);
+  return { synonyms, addWord, removeWord, clearWords };
 }
 
 async function fetchSynonym(
