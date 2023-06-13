@@ -1,13 +1,13 @@
 {
   "expo": {
-    "name": "wordApp",
-    "slug": "wordApp",
+    "name": "Synesis",
+    "slug": "synesis",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
