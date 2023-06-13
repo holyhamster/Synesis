@@ -1,9 +1,5 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import {
-  NativeStackScreenProps,
-  createNativeStackNavigator,
-} from "@react-navigation/native-stack";
 
 import SynonymScreen from "./src/screens/synonyms/synonymScreen";
 import OptionsScreen from "./src/screens/options/optionsScreen";
