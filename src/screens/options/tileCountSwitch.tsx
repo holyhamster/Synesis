@@ -63,7 +63,7 @@ function tilecountToString(count: number) {
 }
 
 function stringToTilecount(count: string) {
-  const parsed = parseInt(count) ?? tileValues.default;
+  const parsed = parseInt(count) || tileValues.default;
   return isInfinite(parsed) ? tileValues.uimax : parsed;
 }
 
@@ -74,8 +74,8 @@ function isInfinite(value) {
 const tileValues = {
   step: 10,
   min: 20,
-  max: 50,
-  uimax: 60,
+  max: 70,
+  uimax: 80,
   default: 30,
 };
 
