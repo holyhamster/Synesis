@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useState } from "react";
 import SynonymCollection from "./synonymCollection";
 import Dictionary from "../dictionary";
-import { ToastAndroid } from "react-native";
+import { useToast } from "react-native-toast-notifications";
 
 //react hook that provides tools for interracting with synonym collections
 export function useSynonyms(
@@ -9,11 +9,7 @@ export function useSynonyms(
   onRemove?: (word: string) => void
 ) {
   const [synonyms, setSynonyms] = React.useState<SynonymCollection[]>([]);
-
-  const forceUpdate = useCallback(
-    () => setSynonyms((previous) => Array.from(previous)),
-    [setSynonyms]
-  );
+  const toast = useToast();
 
   useEffect(() => {
     setSynonyms([]);
@@ -21,21 +17,25 @@ export function useSynonyms(
 
   const addWord = useCallback(
     (word: string) => {
-      setSynonyms((previousSynonym) => {
+      setSynonyms((previous) => {
         const newSynonym = new SynonymCollection(word);
         const EMPTY = !newSynonym || newSynonym.Word == "";
-        const ARRAY_HAS_WORD =
-          previousSynonym.findIndex(
+        const HAS_WORD_ALREADY =
+          previous.findIndex(
             (definiton) => definiton.Word == newSynonym.Word
           ) != -1;
-        if (!EMPTY && !ARRAY_HAS_WORD) {
-          fetchSynonym(newSynonym, dictionary, forceUpdate);
-          return [...previousSynonym, newSynonym];
+
+        if (!EMPTY && !HAS_WORD_ALREADY) {
+          newSynonym.Load(dictionary).then((result) => {
+            if (result.type == "error") toast.show(result.errorMessage);
+            setSynonyms((previous) => Array.from(previous));
+          });
+          return [...previous, newSynonym];
         }
-        return previousSynonym;
+        return previous;
       });
     },
-    [setSynonyms, dictionary, forceUpdate]
+    [setSynonyms, dictionary]
   );
 
   const removeWord = useCallback(
@@ -57,17 +57,4 @@ export function useSynonyms(
 
   const clearWords = useCallback(() => setSynonyms([]), [setSynonyms]);
   return { synonyms, addWord, removeWord, clearWords };
-}
-
-async function fetchSynonym(
-  syn: SynonymCollection,
-  currentDict: Dictionary,
-  updateCallback: () => void
-) {
-  const onFail = (message) => {
-    ToastAndroid.show(message, ToastAndroid.LONG);
-    updateCallback();
-  };
-
-  return syn.Load(currentDict, updateCallback, onFail);
 }

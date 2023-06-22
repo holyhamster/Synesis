@@ -15,19 +15,11 @@ export default class SynonymCollection {
     this.isEmpty = this.definitionSets.length == 0;
   }
 
-  public async Load(
-    dictionary: Dictionary,
-    onSuccess = () => {},
-    onError = (error: string) => {}
-  ) {
+  public async Load(dictionary: Dictionary) {
     const response = await dictionary.GetSynonyms(this.Word);
-    if (response.type == "success") {
-      this.set(response.data);
-      onSuccess();
-    } else {
-      this.set([]);
-      onError(response.errorMessage);
-    }
+    const data = response.type == "success" ? response.data : [];
+    this.set(data);
+    return response;
   }
 
   private isEmpty: boolean = false;
