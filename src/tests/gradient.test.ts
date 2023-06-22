@@ -1,160 +1,62 @@
-import {
-  calculateAnimationTargets,
-  trimAnimationArrays,
-} from "../screens/synonyms/gradient/gradient";
-import ColorNormal from "../screens/synonyms/gradient/colorNormal";
+import ColorNormal from "../screens/synonyms/colorChart/colorNormal";
 import WordNormal from "../dictionaries/data/wordNormal";
+import Rectangle, {
+  AlignRectangles,
+  LerpRectangles,
+} from "../screens/synonyms/colorChart/rectangle";
+
+const wordNormal1 = new WordNormal();
+wordNormal1.push(
+  { value: 0.2, word: "sky" },
+  { value: 0.3, word: "forest" },
+  { value: 0.5, word: "mountain" }
+);
+
+const wordNormal2 = new WordNormal();
+wordNormal2.push({ value: 0.5, word: "sky" }, { value: 0.5, word: "forest" });
+
+const colorMap = new Map([
+  ["mountain", "brown"],
+  ["sky", "blue"],
+  ["forest", "green"],
+]);
 
 test("Normals pipeline", () => {
-  const wordN = new WordNormal();
-  wordN.push(
-    { value: 0.2, word: "sky" },
-    { value: 0.3, word: "forest" },
-    { value: 0.5, word: "mountain" }
-  );
-  const colorMap = new Map([
-    ["mountain", "brown"],
-    ["sky", "blue"],
-    ["forest", "green"],
-  ]);
+  const colorNormal = new ColorNormal(wordNormal1, colorMap);
+  expect(colorNormal.IsValid).toBe(true);
 
-  const colorN = new ColorNormal(wordN, colorMap);
-  const gradient = colorN.toGradientValues();
-  expect(gradient[0].length).toBe(wordN.length * 2);
-  expect(gradient[0][3]).toBe(0.5);
+  const noColorsNormal = new ColorNormal(wordNormal1, new Map());
+  expect(noColorsNormal.IsValid).toBe(false);
+
+  const gradient = colorNormal.ToGradient();
+  expect(gradient[0].width).toBe(0.2);
 });
 
-test("Faulty requests", () => {
-  const test = calculateAnimationTargets([], [], [], []);
-  expect(test).toEqual([[], [], []]);
+test("lerp rectangle", () => {
+  const rect1 = { bottom: 0, left: 0, height: 0, width: 0, color: "blue" };
+  const rect2 = { bottom: 1, left: 1, height: 1, width: 1, color: "red" };
+  const test = LerpRectangles(0.5, rect1, rect2);
+  const result = {
+    bottom: 0.5,
+    left: 0.5,
+    height: 0.5,
+    width: 0.5,
+    color: "red",
+  };
+  expect(test).toEqual(result);
 });
 
-test("no changes", () => {
-  const test = calculateAnimationTargets(
-    [0, 1],
-    [0, 1],
-    ["red", "red"],
-    ["red", "red"]
-  );
+test("convert normals to transition rectangles", () => {
+  const size = { width: 100, height: 50 };
+  const startRects = new ColorNormal(wordNormal1, colorMap)
+    .ToGradient()
+    .ToRectangle(size);
+  expect(startRects.length).toEqual(3);
+  expect(startRects[1].width).toEqual(30);
 
-  expect(test).toEqual([
-    [0, 1],
-    [0, 1],
-    ["red", "red"],
-  ]);
-});
-
-test("adding a color at the end", () => {
-  const test = calculateAnimationTargets(
-    [0, 1],
-    [0, 0.5, 0.5, 1],
-    ["red", "red"],
-    ["red", "red", "blue", "blue"]
-  );
-
-  expect(test).toEqual([
-    [0, 1, 1, 1],
-    [0, 0.5, 0.5, 1],
-    ["red", "red", "blue", "blue"],
-  ]);
-});
-
-test("removing a color at the end", () => {
-  const test = calculateAnimationTargets(
-    [0, 0.5, 0.5, 1],
-    [0, 1],
-    ["red", "red", "blue", "blue"],
-    ["red", "red"]
-  );
-  expect(test).toEqual([
-    [0, 0.5, 0.5, 1],
-    [0, 1, 1, 1],
-    ["red", "red", "blue", "blue"],
-  ]);
-});
-
-test("adding a color in the middle", () => {
-  const test = calculateAnimationTargets(
-    [0, 0.5, 0.5, 1],
-    [0, 0.25, 0.25, 0.75, 0.75, 1],
-    ["red", "red", "blue", "blue"],
-    ["red", "red", "green", "green", "blue", "blue"]
-  );
-
-  expect(test).toEqual([
-    [0, 0.5, 0.5, 0.5, 0.5, 1],
-    [0, 0.25, 0.25, 0.75, 0.75, 1],
-    ["red", "red", "green", "green", "blue", "blue"],
-  ]);
-});
-
-test("removing a color from the middle", () => {
-  const test = calculateAnimationTargets(
-    [0, 0.25, 0.25, 0.75, 0.75, 1],
-    [0, 0.5, 0.5, 1],
-    ["red", "red", "green", "green", "blue", "blue"],
-    ["red", "red", "blue", "blue"]
-  );
-
-  expect(test).toEqual([
-    [0, 0.25, 0.25, 0.75, 0.75, 1],
-    [0, 0.5, 0.5, 0.5, 0.5, 1],
-    ["red", "red", "green", "green", "blue", "blue"],
-  ]);
-});
-
-test("swapping colors", () => {
-  const test = calculateAnimationTargets(
-    [0, 0.25, 0.25, 0.75, 0.75, 1],
-    [0, 0.25, 0.25, 0.75, 0.75, 1],
-    ["green", "green", "red", "red", "blue", "blue"],
-    ["red", "red", "green", "green", "blue", "blue"]
-  );
-
-  expect(test).toEqual([
-    [0, 0, 0, 0.25, 0.25, 0.75, 0.75, 1],
-    [0, 0.25, 0.25, 0.75, 0.75, 0.75, 0.75, 1],
-    ["red", "red", "green", "green", "red", "red", "blue", "blue"],
-  ]);
-});
-
-test("trim arrays", () => {
-  const pos = [0, 0, 0, 0.25, 0.25, 0.75, 0.75, 0.75, 0.75, 1, 1, 1];
-  const colors = [
-    "teal",
-    "teal",
-    "green",
-    "green",
-    "red",
-    "red",
-    "red",
-    "red",
-    "blue",
-    "blue",
-    "yellow",
-    "yellow",
-  ];
-  trimAnimationArrays(pos, colors);
-
-  expect(pos).toEqual([0, 0.25, 0.25, 0.75, 0.75, 1]);
-
-  expect(colors).toEqual(["green", "green", "red", "red", "blue", "blue"]);
-});
-
-test("problem", () => {
-  const t = [1, 2];
-  t.splice(4, 0, 2, 2);
-  expect(t).toEqual([1, 2, 2, 2]);
-  const test = calculateAnimationTargets(
-    [0, 0.25, 0.25, 0.75, 0.75, 1],
-    [0, 0.643, 0.643, 1],
-    ["#r", "#r", "#b", "#b", "#g", "#g"],
-    ["#r", "#r", "#y", "#y"]
-  );
-
-  expect(test).toEqual([
-    [0, 0.25, 0.25, 0.25, 0.25, 0.75, 0.75, 1],
-    [0, 0.643, 0.643, 1, 1, 1, 1, 1],
-    ["#r", "#r", "#y", "#y", "#b", "#b", "#g", "#g"],
-  ]);
+  const endRects = new ColorNormal(wordNormal2, colorMap)
+    .ToGradient()
+    .ToRectangle(size);
+  const [alignedStart, alignedEnd] = AlignRectangles(startRects, endRects);
+  expect(alignedEnd.length).toEqual(3);
 });
