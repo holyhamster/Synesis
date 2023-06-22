@@ -6,7 +6,7 @@ import ColorNormal from "./colorNormal";
 import AnimatedRect from "./animatedRectangle";
 import {
   AlignRectangles as AlignRectangles,
-  LerpRectanglesWor as LerpRectangles,
+  LerpRectangles as LerpRectangles,
 } from "./rectangle";
 import { GetTransitionsKeys, RectangleTransition } from "./rectangleTransition";
 import { useValueSynchronizer } from "../../../useValueSynchronizer";

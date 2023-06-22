@@ -18,7 +18,7 @@ export function RectToString(rect: Rectangle, fixedDecimals = 10) {
   )} W: ${rect.width} H:${rect.height} C:${rect.color}`;
 }
 
-export function LerpRectanglesWor(
+export function LerpRectangles(
   progress: number,
   rect1: Rectangle,
   rect2: Rectangle
@@ -38,37 +38,34 @@ function Lerp(progress: number, start: number, end: number) {
 
 //matches arrays of rectangles index to index by color, by inserting new 0-width rectangles when colors differ
 export function AlignRectangles(
-  startRects: Rectangle[],
-  endRects: Rectangle[]
+  start: Rectangle[],
+  end: Rectangle[]
 ): [startRects: Rectangle[], endRects: Rectangle[]] {
-  startRects = Array.from(startRects);
-  endRects = Array.from(endRects);
-  let startLength = startRects.length;
-  let endLength = endRects.length;
-  const defHeight = startRects[0]?.height || endRects[0]?.height || 0;
+  start = Array.from(start);
+  end = Array.from(end);
+  let startLength = start.length;
+  let endLength = end.length;
+  const defHeight = start[0]?.height || end[0]?.height || 0;
 
   for (let i = 0; i < Math.max(startLength, endLength); i += 1) {
-    if (startRects[i]?.color === endRects[i]?.color) continue;
+    if (start[i]?.color === end[i]?.color) continue;
     //find matching colors for a transition
-    if (startLength <= i || startRects[i]?.color == endRects[i + 1]?.color) {
-      spliceRect(startRects, i, defHeight, endRects[i].color);
+    if (startLength <= i || start[i]?.color == end[i + 1]?.color) {
+      spliceRect(start, i, defHeight, end[i].color);
       startLength += 1;
-    } else if (
-      endLength <= i ||
-      endRects[i]?.color == startRects[i + 1]?.color
-    ) {
-      spliceRect(endRects, i, defHeight, startRects[i].color);
+    } else if (endLength <= i || end[i]?.color == start[i + 1]?.color) {
+      spliceRect(end, i, defHeight, start[i].color);
       endLength += 1;
     }
     //didn't find matches, insert new colors into each array set
     else {
-      spliceRect(startRects, i, defHeight, endRects[i].color);
-      spliceRect(endRects, i + 1, defHeight, startRects[i + 1].color);
+      spliceRect(start, i, defHeight, end[i].color);
+      spliceRect(end, i + 1, defHeight, start[i + 1].color);
       startLength += 1;
       endLength += 1;
     }
   }
-  return [startRects, endRects];
+  return [start, end];
 }
 
 //insert a width-0 rectangle of color
