@@ -38,9 +38,8 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
     [OptionSectionsEnum.Display]: (
       <>
         <TileCountSwitch />
-        {
-          //add option after fixing FlatList animation
-          /*<View>
+        {/*add option after fixing FlatList animation*/
+        /*<View>
           <TitledToggle
             title="Tile layout"
             onValueChange={(state) => {
@@ -53,8 +52,7 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
             }}
             state={tileLayout}
           />
-        </View>*/
-        }
+        </View>*/}
       </>
     ),
     [OptionSectionsEnum.API]: <ApiSwitch navigation={navigation} />,

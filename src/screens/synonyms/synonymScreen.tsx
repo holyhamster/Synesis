@@ -29,11 +29,8 @@ import { useSynonyms } from "../../dictionaries/data/useSynonyms";
 import { OptionSectionsEnum } from "../options/optionsScreen";
 
 const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
-  //console.log("screen render");
-
-  //check if hinst need to be shown
+  //check if hints need to be shown and listen an event if it changes
   const [showingHint, setShowingHint] = React.useState(-1);
-
   useEffect(() => {
     const loadHints = () =>
       GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
@@ -52,7 +49,7 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     return () => subscription.remove();
   }, []);
 
-  //load default dictionary on loading component, add listener to changeApi event
+  //load default dictionary and listen an event if it changes
   const [dictionary, setDictionary] = React.useState<Dictionary>();
   useEffect(() => {
     const loadDictionaryFromMemory = () =>
@@ -68,6 +65,7 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
     return () => subscription.remove();
   }, []);
 
+  //
   const [highlightedWord, setHighlightedWord] = useState("");
   const onWordRemoval = useCallback(
     (removedWord) => {
@@ -84,12 +82,48 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   );
 
   const colorRef = useRef(new Map<string, string>());
-  colorRef.current = rebuildColorMap(
+  colorRef.current = Colors.RebuildColorMap(
     colorRef.current,
     synonyms.map((element) => element.Word)
   );
 
+  //tooltip text at the top of the screen
   const [listTooltip, setListTooltip] = useState("");
+
+  const addAndHighlight = useCallback(
+    (word) => {
+      addWord(word);
+      setHighlightedWord(word);
+    },
+    [addWord, setHighlightedWord]
+  );
+
+  const menuSegment = (
+    <View style={styles.menuButton}>
+      <MaterialButton
+        onPress={() => navigation.navigate("Options")}
+        name="settings"
+        style={{ size: 50 }}
+      />
+
+      {listTooltip != "" && (
+        <TouchableOpacity
+          style={styles.hiddenElementsTooltip}
+          onPress={() => {
+            navigation.navigate("Options", {
+              unravel: OptionSectionsEnum.Display,
+            });
+          }}
+        >
+          <Text>{listTooltip}</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const wordsBeingFetched =
+    synonyms.find((synonym) => !synonym.WasFetched) != null;
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
@@ -106,35 +140,17 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
         )}
         colorMap={colorRef.current}
         addNewWord={addWord}
-        highlightedWord={highlightedWord}
+        addAndHiglight={addAndHighlight}
+        wordToSortBy={highlightedWord}
         showTooltip={(tooltip) => setListTooltip(tooltip)}
       />
 
-      <View style={styles.menuButton}>
-        <MaterialButton
-          onPress={() => navigation.navigate("Options")}
-          name="settings"
-          style={{ size: 50 }}
-        />
-
-        {listTooltip && (
-          <TouchableOpacity
-            style={styles.hiddenElementsTooltip}
-            onPress={() => {
-              navigation.navigate("Options", {
-                unravel: OptionSectionsEnum.Display,
-              });
-            }}
-          >
-            <Text>{listTooltip}</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      {menuSegment}
 
       <View style={styles.connectionIndicator}>
         <ActivityIndicator
           pointerEvents="none"
-          animating={synonyms.find((synonym) => !synonym.WasFetched) != null}
+          animating={wordsBeingFetched}
           size="large"
           color={Colors.CountourColor}
         />
@@ -146,7 +162,7 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
           colorMap={colorRef.current}
           highlighted={highlightedWord}
           onClearButton={clearWords}
-          onWordPress={(word) => removeWord(word)}
+          onPress={(word) => removeWord(word)}
           onLongPress={(word) => setHighlightedWord(word)}
         />
       </View>
@@ -203,21 +219,5 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
 });
-
-function rebuildColorMap(oldMap: Map<string, string>, words: string[]) {
-  const takenColors = new Set<string>();
-  oldMap.forEach((color, word) => {
-    if (words.includes(word)) takenColors.add(color);
-  });
-
-  const newColormap = new Map<string, string>();
-  words.forEach((word) => {
-    const color =
-      oldMap.get(word) || Colors.getFreeColor(Array.from(takenColors));
-    newColormap.set(word, color);
-    takenColors.add(color);
-  });
-  return newColormap;
-}
 
 export default SynonymScreen;

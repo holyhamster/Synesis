@@ -1,9 +1,11 @@
-import { DeviceEventEmitter, ToastAndroid, View } from "react-native";
+import { DeviceEventEmitter, View } from "react-native";
 import {
   DictionaryKeyRequirement,
   DictionaryType,
 } from "../../dictionaries/dictionary";
 import React, { FC } from "react";
+import { useToast } from "react-native-toast-notifications";
+
 import { InputModalEventParams } from "../inputModal";
 import { OptionsProps } from "../../navigation";
 import { EventsEnum } from "../../events";
@@ -19,6 +21,7 @@ interface ApiSwitchProps {
 
 //List of toggles to switch API, pops up InputModal for API key
 export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
+  const toast = useToast();
   const [currentDictionaryType, setCurrentDictionaryType] =
     React.useState<DictionaryType>();
 
@@ -38,9 +41,8 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
           apiKey
         ).then(() => DeviceEventEmitter.emit(EventsEnum.ApiChanged));
       } else {
-        ToastAndroid.show(
-          `Please provide an API key to use ${dictionaryType} dictionary`,
-          ToastAndroid.LONG
+        toast.show(
+          `Please provide an API key to use ${dictionaryType} dictionary`
         );
       }
     };
