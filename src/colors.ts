@@ -1,16 +1,29 @@
 export function getRandomColor(): string {
   return colors[Math.floor(Math.random() * colors.length)];
-  //let randomNumber = Math.floor(Math.random() * 16777216);
-  //let hexString = randomNumber.toString(16).padStart(6, "0");
-  //return "#" + hexString;
 }
 
-export function getFreeColor(takenColors: string[]): string {
+function getFreeColor(takenColors: string[]): string {
   const set = new Set(colors);
   for (const color of takenColors) set.delete(color);
+
   return set.size == 0
     ? getRandomColor()
     : Array.from(set)[Math.floor(Math.random() * set.size)];
+}
+
+export function RebuildColorMap<T>(oldMap: Map<T, string>, keys: T[]) {
+  const takenColors = new Set<string>();
+  oldMap.forEach((color, key) => {
+    if (keys.includes(key)) takenColors.add(color);
+  });
+
+  const newColormap = new Map<T, string>();
+  keys.forEach((key) => {
+    const color = oldMap.get(key) || getFreeColor(Array.from(takenColors));
+    newColormap.set(key, color);
+    takenColors.add(color);
+  });
+  return newColormap;
 }
 
 const colors = [
