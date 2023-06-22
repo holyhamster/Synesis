@@ -6,21 +6,26 @@ import {
   TouchableHighlight,
   ViewStyle,
   TextStyle,
+  Pressable,
+  Platform,
+  Animated,
 } from "react-native";
 
 import ColorNormal from "./colorChart/colorNormal";
 import ColorChart from "./colorChart/colorChart";
+import * as Colors from "../../colors";
 
 interface SynonymWordProps {
   word: string;
   colorNormal: ColorNormal;
   onPress: (word: string) => void;
+  onLongPress: (word: string) => void;
   style?: ViewStyle;
 }
 
 //pressable tile with a word and a sharp color gradient of given color normal
 const SynonymWord: FC<SynonymWordProps> = memo(
-  ({ colorNormal, word, onPress, style: propStyle }) => {
+  ({ colorNormal, word, onPress, onLongPress, style: propStyle }) => {
     const [layoutSize, setLayoutSize] = useState<{
       height: number;
       width: number;
@@ -68,29 +73,49 @@ const SynonymWord: FC<SynonymWordProps> = memo(
         width: nativeEvent.layout.width,
       });
     };
+    const opacity = React.useRef(new Animated.Value(0)).current;
+
+    // use effect hook to run the animation when the component mounts and unmounts
+    React.useEffect(() => {
+      // fade in the component when it mounts
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: false,
+      }).start();
+    }, []);
 
     return (
-      <TouchableHighlight
-        onPress={() => onPress(word)}
-        onHideUnderlay={() => setHighlighted(false)}
-        onShowUnderlay={() => setHighlighted(true)}
-      >
-        <View
-          style={styles.container}
-          onLayout={layoutSize.width == 0 ? onLayout : undefined}
+      <Animated.View style={{ opacity }}>
+        <Pressable
+          android_ripple={{
+            color: Colors.BGWhite,
+            foreground: true,
+          }}
+          onPress={() => onPress(word)}
+          onLongPress={() => {
+            onLongPress(word);
+          }}
+          style={({ pressed }) => ({
+            opacity: Platform.OS != "android" && pressed ? 0.6 : 1,
+          })}
         >
-          {layoutSize.width != 0 && (
-            <ColorChart
-              colorNormal={colorNormal}
-              style={styles.chart}
-              size={layoutSize}
-            />
-          )}
-
-          <View style={styles.touchOverlay} />
-          <Text style={styles.word}>{word}</Text>
-        </View>
-      </TouchableHighlight>
+          <View
+            style={styles.container}
+            onLayout={layoutSize.width == 0 ? onLayout : undefined}
+          >
+            {layoutSize.width != 0 && (
+              <ColorChart
+                colorNormal={colorNormal}
+                style={styles.chart}
+                size={layoutSize}
+              />
+            )}
+            <View style={styles.touchOverlay} />
+            <Text style={styles.word}>{word}</Text>
+          </View>
+        </Pressable>
+      </Animated.View>
     );
   }
 );

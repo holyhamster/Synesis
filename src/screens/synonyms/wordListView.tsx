@@ -1,7 +1,7 @@
 import React, { FC } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import SynonymCollection from "../../dictionaries/data/synonymCollection";
-import {
+import Animated, {
   Transition,
   Transitioning,
   TransitioningView,
@@ -10,12 +10,13 @@ import * as Haptics from "expo-haptics";
 import MaterialButton from "../materialButton";
 import * as Colors from "../../colors";
 
+const anim = Animated.createAnimatedComponent(View);
 //UI element listing selected synonyms
 interface WordListProps {
   synonymArray: SynonymCollection[];
   colorMap: Map<string, string>;
   highlighted: string;
-  onWordPress: (word: string) => void;
+  onPress: (word: string) => void;
   onLongPress: (word: string) => void;
   onClearButton: () => void;
 }
@@ -24,49 +25,57 @@ const WordListView: FC<WordListProps> = ({
   synonymArray,
   colorMap,
   highlighted,
-  onWordPress,
+  onPress,
   onLongPress,
   onClearButton,
 }) => {
   const transitionReference = React.useRef<TransitioningView>();
 
   React.useEffect(() => {
-    transitionReference.current.animateNextTransition();
+    if (Platform.OS == "android")
+      transitionReference.current.animateNextTransition();
   }, [synonymArray]);
 
+  const wordsComponents = synonymArray.map(({ Word, IsEmpty, WasFetched }) => {
+    const OVERRIDE_COLOR = !WasFetched || IsEmpty || !colorMap.has(Word);
+    const color = OVERRIDE_COLOR ? Colors.DisabledGrey : colorMap.get(Word);
+    const highlightedStyle = Word == highlighted ? styles.highlighted : [];
+    const getStyle = (pressed: boolean) => ({
+      backgroundColor: color,
+      ...highlightedStyle,
+      opacity: Platform.OS != "android" && pressed ? 0.6 : 1,
+    });
+    return (
+      <Pressable
+        key={Word}
+        android_ripple={{
+          color: Colors.BGWhite,
+        }}
+        style={({ pressed }) => getStyle(pressed)}
+        onPress={() => onPress(Word)}
+        onLongPress={() => {
+          onLongPress(Word);
+          if (Platform.OS == "android") Haptics.selectionAsync();
+        }}
+      >
+        <Text style={styles.text}>{Word}</Text>
+      </Pressable>
+    );
+  });
+
   return (
-    <Transitioning.View
-      style={styles.container}
-      transition={transition}
-      ref={transitionReference}
-    >
-      <View style={styles.list}>
-        {synonymArray.map((synDef, index) => {
-          const color =
-            !synDef.WasFetched || synDef.IsEmpty
-              ? Colors.DisabledGrey
-              : colorMap.get(synDef.Word) || Colors.BGWhite;
-          return (
-            <Pressable
-              key={index}
-              android_ripple={{
-                color: Colors.BGWhite,
-              }}
-              style={{
-                backgroundColor: color,
-                ...(synDef.Word == highlighted ? styles.highlighted : []),
-              }}
-              onPress={() => onWordPress(synDef.Word)}
-              onLongPress={() => {
-                onLongPress(synDef.Word);
-                Haptics.selectionAsync();
-              }}
-            >
-              <Text style={styles.text}>{synDef.Word}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+    <View style={styles.container}>
+      {Platform.OS == "android" ? (
+        <Transitioning.View
+          style={styles.list}
+          transition={transition}
+          ref={transitionReference}
+        >
+          {wordsComponents}
+        </Transitioning.View>
+      ) : (
+        <View style={styles.list}>{wordsComponents}</View>
+      )}
 
       <MaterialButton
         disabled={synonymArray.length == 0}
@@ -78,7 +87,7 @@ const WordListView: FC<WordListProps> = ({
           countourColor: Colors.CountourColor,
         }}
       />
-    </Transitioning.View>
+    </View>
   );
 };
 
@@ -110,8 +119,7 @@ const styles = StyleSheet.create({
 
 const transition = (
   <Transition.Together>
-    <Transition.In type="fade" durationMs={500} />
-    <Transition.Out type="fade" durationMs={500} />
+    <Transition.Change durationMs={200} />
   </Transition.Together>
 );
 
