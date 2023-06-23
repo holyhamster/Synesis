@@ -11,6 +11,7 @@ export type StackParamList = {
     eventName: string;
     varName: string;
     varHint: string | undefined;
+    varLink: string | undefined;
   };
 };
 export type HomeProps = NativeStackScreenProps<StackParamList, "Home">;

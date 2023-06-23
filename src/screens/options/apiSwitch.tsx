@@ -69,7 +69,8 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
     if (DictionaryKeyRequirement[dictionaryType]) {
       navigation.navigate("InputModal", {
         varName: dictionaryType,
-        varHint: dictionaryType,
+        varHint: `API key for ${dictionaryType}`,
+        varLink: `https://dictionaryapi.com/`, //todo move into personalized api section
         eventName: EventsEnum.ApiKeyEntered,
       });
       return;

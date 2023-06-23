@@ -4,6 +4,8 @@ import {
   StyleSheet,
   DeviceEventEmitter,
   TouchableOpacity,
+  Platform,
+  Linking,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Accordion from "react-native-collapsible/Accordion";
@@ -35,39 +37,24 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
   });
 
   const accordionContents = {
-    [OptionSectionsEnum.Display]: (
-      <>
-        <TileCountSwitch />
-        {/*add option after fixing FlatList animation*/
-        /*<View>
-          <TitledToggle
-            title="Tile layout"
-            onValueChange={(state) => {
-              setTileLayout(state);
-              SetStringInStorage(
-                StringTypesEnum.TileLayout,
-                state ? "yes" : ""
-              );
-              DeviceEventEmitter.emit(EventsEnum.LayoutChanged);
-            }}
-            state={tileLayout}
-          />
-        </View>*/}
-      </>
-    ),
+    [OptionSectionsEnum.Display]: <TileCountSwitch />,
     [OptionSectionsEnum.API]: <ApiSwitch navigation={navigation} />,
-    [OptionSectionsEnum.About]: <Text>Some info about the app</Text>,
+    [OptionSectionsEnum.About]: (
+      <Text style={styles.linkText} onPress={() => Linking.openURL(ABOUT_LINK)}>
+        {ABOUT_LINK}
+      </Text>
+    ),
     [OptionSectionsEnum.Hints]: (
       <TouchableOpacity
         style={styles.resetHints}
         onPress={() => {
-          Haptics.selectionAsync();
+          if (Platform.OS == "android") Haptics.selectionAsync();
           SetStringInStorage(StringTypesEnum.WasLaunched, "").then(() =>
             DeviceEventEmitter.emit(EventsEnum.HintsReset)
           );
         }}
       >
-        <MaterialIcons name="replay-circle-filled" size={40} />
+        <MaterialIcons name="replay-circle-filled" size={30} />
         <Text style={{ fontSize: 15 }}>Reset Hints</Text>
       </TouchableOpacity>
     ),
@@ -129,6 +116,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
+  linkText: { fontSize: 15, color: "blue" },
   resetHints: {
     flexDirection: "row",
     alignItems: "center",
@@ -141,6 +129,7 @@ const styles = StyleSheet.create({
   },
 });
 
+const ABOUT_LINK = "https://github.com/holyhamster/Synesis/";
 export enum OptionSectionsEnum {
   Display = "Display",
   API = "API",
