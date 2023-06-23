@@ -22,7 +22,6 @@ const WordInputField: FC<WordInputProps> = ({ onAddWord }) => {
         <TextInput
           style={styles.inputText}
           autoFocus={true}
-          placeholder=" enter a new word"
           blurOnSubmit={true}
           value={inputText}
           onChangeText={(text) => {
@@ -65,6 +64,8 @@ const styles = StyleSheet.create({
   },
   inputText: {
     fontSize: 20,
+    width: "90%",
+    textAlign: "center",
   },
 });
 
