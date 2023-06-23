@@ -7,9 +7,7 @@ import {
   View,
   ViewStyle,
 } from "react-native";
-import Animated, {
-  FadeIn,
-  FadeOut,
+import {
   Transition,
   Transitioning,
   TransitioningView,
@@ -78,12 +76,15 @@ const SynonymList: FC<SynonymListProps> = ({
   //get tileLimit value out of memory
   const [tileLimit, setTileLimit] = useState(DEFAULT_TILE_LIMIT);
   useEffect(() => {
+    const loadTilelimit = () => {
+      GetStringFromStorage(StringTypesEnum.TileCount).then((value) =>
+        setTileLimit(parseInt(value) ?? DEFAULT_TILE_LIMIT)
+      );
+    };
+    loadTilelimit();
     const subscription = DeviceEventEmitter.addListener(
       EventsEnum.TileCountChanged,
-      () =>
-        GetStringFromStorage(StringTypesEnum.TileCount).then((value) =>
-          setTileLimit(parseInt(value) ?? DEFAULT_TILE_LIMIT)
-        )
+      loadTilelimit
     );
     return () => subscription.remove();
   }, []);
