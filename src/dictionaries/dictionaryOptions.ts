@@ -12,12 +12,11 @@ export async function GetCurrentDictionary(): Promise<Dictionary> {
   const apiType = (await LoadCurrentDictionaryType()) || DictionaryType.Self;
   let key;
 
-  if (apiType == DictionaryType.Self) key = process.env.REACT_APP_API_KEY;
-  else if (DictionaryKeyRequirement[apiType]) key = await Keys.Get(apiType);
+  if (DictionaryKeyRequirement[apiType]) key = await Keys.Get(apiType);
 
   switch (apiType) {
     case DictionaryType.Self:
-      return BuildMeriam(key);
+      return BuildDatamuse();
     case DictionaryType.Meriam:
       return BuildMeriam(key);
     case DictionaryType.Datamuse:
