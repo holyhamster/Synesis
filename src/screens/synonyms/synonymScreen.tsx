@@ -99,11 +99,11 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   );
 
   const menuSegment = (
-    <View style={styles.menuButton}>
+    <View style={styles.menuSection}>
       <MaterialButton
         onPress={() => navigation.navigate("Options")}
         name="settings"
-        style={{ size: 50 }}
+        style={{ size: 40, opacity: 0.8 }}
       />
 
       {listTooltip != "" && (
@@ -197,11 +197,11 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
 
-  menuButton: {
+  menuSection: {
     flexDirection: "row",
     position: "absolute",
-    left: 10,
-    top: 50,
+    left: "5%",
+    top: "5%",
     zIndex: 1,
   },
 

@@ -38,6 +38,6 @@ const colors = [
   "#24FF24",
 ];
 export const DisabledGrey: string = "#7A7B7A";
-export const BGWhite: string = "white";
+export const BGWhite: string = "#FFFFFF";
 export const AccentColor: string = "#eac8f7";
-export const CountourColor: string = "black";
+export const CountourColor: string = "#000000";

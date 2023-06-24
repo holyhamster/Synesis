@@ -7,6 +7,7 @@ interface MaterialButtonStyle {
   countourColor?: string;
   disabledCountourColor?: string;
   size?: number;
+  opacity?: number;
 }
 
 interface MaterialButtonProps {

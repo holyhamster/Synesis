@@ -1,7 +1,7 @@
 import React from "react";
 
 //maintains an array of values
-//if child components register for live updates, they will recieve them live whenever setter is used
+//sends new assigned values to all registered for live updates
 export function useValueSynchronizer<T>(
   keyExtractor: (array: T[]) => Map<string, T>
 ) {
@@ -10,7 +10,7 @@ export function useValueSynchronizer<T>(
   //used to identify setters in an array
   const [keys, setKeys] = React.useState(keyExtractor(values));
 
-  //setters are stored and called when the value is changed
+  //setters are stored along their keys and called when the value is changed
   type Setter = (val: T) => void;
 
   const setters = React.useRef(new Map<string, Setter>());
@@ -21,16 +21,19 @@ export function useValueSynchronizer<T>(
     setters.current.set(key, setter);
   }, []);
 
-  //sets the value state and calls all setters
+  //sets the value to state, calls all setters with the new value
   const setArray = React.useCallback(
-    (newArray: T[], callback?: (previous) => void) => {
-      const newKeys = keyExtractor(newArray);
-      setValues((previous) => {
-        callback?.(previous);
+    (arrayOrCallback: T[] | ((previous) => T[])) => {
+      setValues((previous: T[]) => {
+        const array =
+          typeof arrayOrCallback == "function"
+            ? arrayOrCallback(previous)
+            : arrayOrCallback;
+        const newKeys = keyExtractor(array);
         newKeys.forEach((value, key) => setters.current.get(key)?.(value));
-        return newArray;
+        setKeys(newKeys);
+        return array;
       });
-      setKeys(newKeys);
     },
     [setValues, setKeys, keyExtractor]
   );

@@ -33,7 +33,7 @@ interface SynonymListProps {
   showTooltip?: (text: string) => void;
   style?: ViewStyle;
 }
-//Takes synonyms, builds clouds of words and displays them in a ScrollList
+//Builds clouds of words from synonyms and displays them in a ScrollList
 const SynonymList: FC<SynonymListProps> = ({
   synonyms,
   colorMap,
@@ -43,7 +43,7 @@ const SynonymList: FC<SynonymListProps> = ({
   showTooltip,
   style,
 }) => {
-  //use layout transition for tile movement (supported only on android)
+  //layout transition for tile movement (only on android)
   const transitionViewRef = useRef<TransitioningView>();
   const animateTransition = () => {
     if (Platform.OS == "android")
@@ -69,9 +69,11 @@ const SynonymList: FC<SynonymListProps> = ({
   const [colorNormals, setColorNormals] = useState(
     new Map<string, ColorNormal>()
   );
-  useEffect(() => {
-    setColorNormals((previous) => rebuildNormals(clouds, colorMap, previous));
-  }, [clouds, colorMap]);
+  useEffect(
+    () =>
+      setColorNormals((previous) => rebuildNormals(clouds, colorMap, previous)),
+    [clouds, colorMap]
+  );
 
   //get tileLimit value out of memory
   const [tileLimit, setTileLimit] = useState(DEFAULT_TILE_LIMIT);
@@ -95,28 +97,25 @@ const SynonymList: FC<SynonymListProps> = ({
     showTooltip?.(toolTipText);
   }, [showTooltip, tileLimit, clouds]);
 
-  const styleWord = React.useMemo(
-    () => ({ zIndex: (style?.zIndex ?? 0) + 1 }),
-    [style?.zIndex]
-  );
+  const zIndex = style?.zIndex ?? 0;
 
   const cloudComponents = clouds
     .slice(-tileLimit)
-    .map((cloud) => (
+    .map(({ name }) => (
       <SynonymWord
-        key={cloud.name}
-        word={cloud.name}
-        colorNormal={colorNormals.get(cloud.name)}
+        key={name}
+        word={name}
+        colorNormal={colorNormals.get(name)}
         onPress={addNewWord}
         onLongPress={addAndHiglight}
-        style={styleWord}
+        style={{ zIndex: zIndex + 1 }}
       />
     ));
 
   return (
     <ScrollView
       keyboardShouldPersistTaps="handled"
-      style={{ zIndex: style?.zIndex ?? 0 }}
+      style={{ zIndex: zIndex }}
       fadingEdgeLength={1}
       snapToEnd={true}
       contentContainerStyle={styles.synonymScrollContainer}
@@ -149,11 +148,11 @@ const styles = StyleSheet.create({
   synonymScrollContainer: {
     flexGrow: 1,
     columnGap: 100,
-    paddingVertical: 5,
+    margin: 5,
   },
 });
 
-//compares old normal map with a new colormap, creates new normals when required
+//keeps old correct normals
 function rebuildNormals(
   clouds: SynonymCloud[],
   newColorMap: Map<string, string>,

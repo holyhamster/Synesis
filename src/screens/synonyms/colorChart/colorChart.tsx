@@ -44,7 +44,7 @@ const ColorChart: FC<ColorChartProps> = ({
     });
   }, [animationLength]);
 
-  //calculate starting and ending animation rectangles and start animation
+  //calculate starting and ending rectangles when normal changes
   useEffect(() => {
     if (!colorNormal?.IsValid) return;
     //get current rectangles according to animation progress
@@ -66,9 +66,9 @@ const ColorChart: FC<ColorChartProps> = ({
       end: newTarget[index],
     }));
 
-    setTransitions(newRects, (previous) => {
-      if (!previous.length) return;
-      restartAnimation();
+    setTransitions((previous: RectangleTransition[]) => {
+      if (previous.length) restartAnimation();
+      return newRects;
     });
   }, [colorNormal, size, setTransitions]);
 

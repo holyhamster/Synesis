@@ -19,7 +19,7 @@ interface ApiSwitchProps {
   navigation: OptionsProps["navigation"];
 }
 
-//List of toggles to switch API, pops up InputModal for API key
+//List of toggles to switch API, pops up InputModal for API key when required
 export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
   const toast = useToast();
   const [currentDictionaryType, setCurrentDictionaryType] =
@@ -61,9 +61,9 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
     };
   });
 
-  const onPressAPIToggle = (dictionaryType: DictionaryType) => {
+  const onTogglePress = (dictionaryType: DictionaryType) => {
     const { state: enabled } = apiTogglesData.find(
-      (apiToggle) => apiToggle.name == dictionaryType
+      ({ name }) => name == dictionaryType
     );
 
     if (DictionaryKeyRequirement[dictionaryType]) {
@@ -89,8 +89,8 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
       {apiTogglesData.map(({ name, state }) => (
         <TitledToggle
           key={name}
-          onValueChange={(state) => {
-            onPressAPIToggle(name);
+          onValueChange={() => {
+            onTogglePress(name);
           }}
           state={state}
           title={name}

@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { StyleSheet, View } from "react-native";
 import HintView from "./hintsView";
 
 interface HintOverlayProps {
