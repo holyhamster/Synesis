@@ -1,6 +1,7 @@
 import { DeviceEventEmitter, View } from "react-native";
 import {
   DictionaryKeyRequirement,
+  DictionaryRegistrationLinks,
   DictionaryType,
 } from "../../dictionaries/dictionary";
 import React, { FC } from "react";
@@ -69,8 +70,8 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
     if (DictionaryKeyRequirement[dictionaryType]) {
       navigation.navigate("InputModal", {
         varName: dictionaryType,
-        varHint: `API key for ${dictionaryType}`,
-        varLink: `https://dictionaryapi.com/`, //todo move into personalized api section
+        varHint: `Enter API key for ${dictionaryType}`,
+        varLink: DictionaryRegistrationLinks[dictionaryType], //todo move into personalized api section
         eventName: EventsEnum.ApiKeyEntered,
       });
       return;
