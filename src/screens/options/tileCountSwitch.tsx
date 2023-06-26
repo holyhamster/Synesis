@@ -1,13 +1,8 @@
 import React, { FC, useRef, useState } from "react";
 import { DeviceEventEmitter, StyleSheet, Text, View } from "react-native";
-import {
-  GetStringFromStorage,
-  SetStringInStorage,
-  StringTypesEnum,
-} from "../../dictionaries/storageHandling";
+import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import Slider from "@react-native-community/slider";
 import { EventsEnum } from "../../events";
-import { topLeft } from "@shopify/react-native-skia";
 
 interface TileCountSwitchProps {}
 
@@ -16,13 +11,13 @@ const TileCountSwitch: FC<TileCountSwitchProps> = ({}) => {
   const sliderRef = useRef<any>();
 
   if (tileCount == -1)
-    GetStringFromStorage(StringTypesEnum.TileCount).then((stringValue) => {
+    Storage.GetString(StringTypesEnum.TileCount).then((stringValue) => {
       const numberValue = stringToTilecount(stringValue);
       setTileCount(numberValue);
     });
 
   const onValChange = (newVal: number) => {
-    SetStringInStorage(StringTypesEnum.TileCount, tilecountToString(newVal));
+    Storage.SetString(StringTypesEnum.TileCount, tilecountToString(newVal));
     setTileCount(newVal);
     DeviceEventEmitter.emit(EventsEnum.TileCountChanged);
   };

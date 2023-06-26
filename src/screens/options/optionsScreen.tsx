@@ -12,29 +12,18 @@ import Accordion from "react-native-collapsible/Accordion";
 import React, { FC, useEffect, useState } from "react";
 import ApiSwitch from "./apiSwitch";
 import { OptionsProps } from "../../navigation";
-import {
-  GetStringFromStorage,
-  SetStringInStorage,
-  StringTypesEnum,
-} from "../../dictionaries/storageHandling";
+import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import { EventsEnum } from "../../events";
-import TitledToggle from "../titledToggle";
 import * as Colors from "../../colors";
 import TileCountSwitch from "./tileCountSwitch";
 import * as Haptics from "expo-haptics";
 
 const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
   const { unravel } = route.params ?? { unravel: undefined };
-
   useEffect(() => {
     const propIndex = Object.keys(OptionSectionsEnum).indexOf(unravel);
     if (propIndex >= 0) setActiveSessions([propIndex]);
   }, []);
-
-  const [tileLayout, setTileLayout] = useState(false);
-  GetStringFromStorage(StringTypesEnum.TileLayout).then((val) => {
-    setTileLayout(val != undefined && val != "");
-  });
 
   const accordionContents = {
     [OptionSectionsEnum.Display]: <TileCountSwitch />,
@@ -49,7 +38,7 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
         style={styles.resetHints}
         onPress={() => {
           if (Platform.OS == "android") Haptics.selectionAsync();
-          SetStringInStorage(StringTypesEnum.WasLaunched, "").then(() =>
+          Storage.SetString(StringTypesEnum.WasLaunched, "").then(() =>
             DeviceEventEmitter.emit(EventsEnum.HintsReset)
           );
         }}
