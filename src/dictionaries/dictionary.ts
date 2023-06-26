@@ -1,4 +1,4 @@
-import { APIResponse } from "./data/apiResponse";
+import { APIErrorEnum, APIResponse } from "./data/apiResponse";
 
 //fetches information about a word from an API and parses it into a synonym
 export default class Dictionary {
@@ -10,11 +10,16 @@ export default class Dictionary {
   private fetchResponse(word: string) {
     return fetch(this.urlGetter(word));
   }
+
   GetSynonyms(word: string) {
     word = this.normalize ? this.normalize(word) : word;
-    return this.fetchResponse(word).then((response) =>
-      this.parse(word, response)
-    );
+
+    return this.fetchResponse(word)
+      .then((response) => this.parse(word, response))
+      .catch(
+        (_) =>
+          ({ type: "error", errorMessage: APIErrorEnum.Network } as APIResponse)
+      );
   }
 }
 
