@@ -32,7 +32,7 @@ const InputModal: FC<InputModalProps> = ({ navigation, route }) => {
   const [inputText, setInputText] = React.useState("");
   return (
     <View style={styles.parentView}>
-      <Text style={styles.hintText}>Enter {varHint ?? "variable"}</Text>
+      <Text style={styles.hintText}>{varHint ?? "Enter variable"}</Text>
       <Text style={styles.linkText} onPress={() => Linking.openURL(varLink)}>
         {varLink}
       </Text>
@@ -60,7 +60,10 @@ const InputModal: FC<InputModalProps> = ({ navigation, route }) => {
         />
         <MaterialButton
           name="check"
-          onPress={() => submitValue(inputText)}
+          onPress={() => {
+            submitValue(inputText);
+            navigation.goBack();
+          }}
           style={{ size: 50 }}
         />
       </View>
