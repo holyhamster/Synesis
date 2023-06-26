@@ -3,39 +3,43 @@ import { APIResponse } from "./data/apiResponse";
 //fetches information about a word from an API and parses it into a synonym
 export default class Dictionary {
   constructor(
-    private fetcher: Fetcher,
-    private parser: Parser,
-    private normalizer?: Normalizer
+    private urlGetter: getURL,
+    private parse: parseResponse,
+    private normalize?: normalizeWord
   ) {}
-
+  private fetchResponse(word: string) {
+    return fetch(this.urlGetter(word));
+  }
   GetSynonyms(word: string) {
-    word = this.normalizer ? this.normalizer.NormalizeWord(word) : word;
-    return this.fetcher.FetchData(word).then((data) => {
-      return this.parser.ParseData(data, word);
-    });
+    word = this.normalize ? this.normalize(word) : word;
+    return this.fetchResponse(word).then((response) =>
+      this.parse(word, response)
+    );
   }
 }
 
-export interface Fetcher {
-  FetchData(word: string): Promise<string>;
-}
-
-export interface Parser {
-  ParseData(response: string, targetWord: string): APIResponse;
-}
-
-export interface Normalizer {
-  NormalizeWord(word: string): string;
-}
+type getURL = (word: string, apiKey?: string) => string;
+type parseResponse = (word: string, response: Response) => Promise<APIResponse>;
+type normalizeWord = (string: string) => string;
 
 export enum DictionaryType {
   Self = "Default",
   Meriam = "MeriamWebster",
   Datamuse = "Datamuse",
+  BigHugeThesarus = "BigHugeThesarus",
 }
 
 export const DictionaryKeyRequirement = {
   [DictionaryType.Self]: false,
   [DictionaryType.Meriam]: true,
+  [DictionaryType.BigHugeThesarus]: true,
   [DictionaryType.Datamuse]: false,
+};
+
+export const DictionaryRegistrationLinks = {
+  [DictionaryType.Self]: "",
+  [DictionaryType.Meriam]: "https://dictionaryapi.com/",
+  [DictionaryType.BigHugeThesarus]:
+    "https://words.bighugelabs.com/account/getkey",
+  [DictionaryType.Datamuse]: "",
 };

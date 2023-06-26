@@ -1,53 +1,35 @@
 import { APIErrorEnum, APIResponse } from "./data/apiResponse";
-import Dictionary, { Fetcher, Normalizer, Parser } from "./dictionary";
+import Dictionary from "./dictionary";
 
 //dictionary components for datamuse.com API
 export default function BuildDatamuse(): Dictionary {
   return new Dictionary(
-    new DatamuseFetcher(),
-    new DatamuseParser(),
-    new DatamuseNormalizer()
+    (word: string) => `https://api.datamuse.com/words?rel_syn=${word}`,
+    DatamuseParse,
+    (word: string) => word.replace(" ", "_")
   );
 }
 
-export class DatamuseParser implements Parser {
-  public ParseData(response: string): APIResponse {
-    try {
-      const parsed = JSON.parse(response);
-      if (parsed.length == 0 || parsed[0]?.word == undefined)
-        throw new Error(APIErrorEnum.NoWord);
-
-      const sets: Set<string>[] = parsed.map(
-        (definition) => new Set<string>([definition.word])
-      );
-
-      return { type: "success", data: [sets] };
-    } catch (error) {
-      return { type: "error", errorMessage: error.message };
-    }
-  }
-}
-
-export class DatamuseFetcher implements Fetcher {
-  public async FetchData(word: string): Promise<string> {
-    word.replace(" ", "_");
-    const response = await fetch(
-      `https://api.datamuse.com/words?rel_syn=${word}`
-    );
-
+export async function DatamuseParse(
+  _: string,
+  response: Response
+): Promise<APIResponse> {
+  try {
     if (!response.ok)
       throw new Error(`Something went wrong: ${response.status}`);
 
     const text = await response.text();
-
     if (!text) throw new Error("Empty response");
+    const parsed = JSON.parse(text);
+    if (parsed.length == 0 || parsed[0]?.word == undefined)
+      throw new Error(APIErrorEnum.NoWord);
 
-    return text;
-  }
-}
+    const sets: Set<string>[] = parsed.map(
+      (definition) => new Set<string>([definition.word])
+    );
 
-export class DatamuseNormalizer implements Normalizer {
-  public NormalizeWord(word: string): string {
-    return word.replace(" ", "_");
+    return { type: "success", data: [sets] };
+  } catch (error) {
+    return { type: "error", errorMessage: error.message };
   }
 }
