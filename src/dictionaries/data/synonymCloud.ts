@@ -76,8 +76,8 @@ export function CrossReference(collections: SynonymCollection[]) {
     order: number
   ) => {
     for (const setWord of set) {
-      if (allKeywords.includes(setWord)) continue;
-      getCloud(setWord).addConnection(keyWord, order);
+      if (!allKeywords.includes(setWord))
+        getCloud(setWord).addConnection(keyWord, order);
     }
   };
 
@@ -91,12 +91,10 @@ export function CrossReference(collections: SynonymCollection[]) {
             addConnectionToSet(synonymSet, word, 1);
 
             for (const synonymList2 of definition) {
-              if (synonymList2 === synonymSet) continue;
-              addConnectionToSet(synonymList2, word, 2);
+              if (synonymList2 !== synonymSet)
+                addConnectionToSet(synonymList2, word, 2);
             }
-          } else {
-            getCloud(word).addConnection(collection.Word, 0);
-          }
+          } else getCloud(word).addConnection(collection.Word, 0);
         }
 
   return Array.from(map.values());

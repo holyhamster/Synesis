@@ -16,11 +16,7 @@ import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
 import { GetCurrentDictionary } from "../../dictionaries/dictionaryOptions";
-import {
-  GetStringFromStorage,
-  SetStringInStorage,
-  StringTypesEnum,
-} from "../../dictionaries/storageHandling";
+import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import WordListView from "./wordListView";
 import HintOverlay from "./hintOverlay";
 import * as Colors from "../../colors";
@@ -33,9 +29,9 @@ const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
   const [showingHint, setShowingHint] = React.useState(-1);
   useEffect(() => {
     const loadHints = () =>
-      GetStringFromStorage(StringTypesEnum.WasLaunched).then((value) => {
+      Storage.GetString(StringTypesEnum.WasLaunched).then((value) => {
         if (!value) {
-          SetStringInStorage(StringTypesEnum.WasLaunched, "yes");
+          Storage.SetString(StringTypesEnum.WasLaunched, "yes");
           setShowingHint(0);
         }
       });

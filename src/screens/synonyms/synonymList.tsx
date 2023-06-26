@@ -19,10 +19,7 @@ import ColorNormal from "./colorChart/colorNormal";
 import SynonymWord from "./synonymWord";
 import SynonymCollection from "../../dictionaries/data/synonymCollection";
 import { EventsEnum } from "../../events";
-import {
-  GetStringFromStorage,
-  StringTypesEnum,
-} from "../../dictionaries/storageHandling";
+import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 
 interface SynonymListProps {
   synonyms: SynonymCollection[];
@@ -79,7 +76,7 @@ const SynonymList: FC<SynonymListProps> = ({
   const [tileLimit, setTileLimit] = useState(DEFAULT_TILE_LIMIT);
   useEffect(() => {
     const loadTilelimit = () => {
-      GetStringFromStorage(StringTypesEnum.TileCount).then((value) =>
+      Storage.GetString(StringTypesEnum.TileCount).then((value) =>
         setTileLimit(parseInt(value) ?? DEFAULT_TILE_LIMIT)
       );
     };
