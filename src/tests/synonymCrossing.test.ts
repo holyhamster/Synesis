@@ -1,4 +1,3 @@
-import { DisabledGrey } from "../colors";
 import { APIResponse } from "../dictionaries/data/apiResponse";
 import BuildDatamuse from "../dictionaries/datamuse";
 import Dictionary from "../dictionaries/dictionary";
@@ -8,6 +7,8 @@ import SynonymCloud, {
 import SynonymCollection from "../dictionaries/data/synonymCollection";
 const mockSynSets = new Map<string, Set<string>[][]>();
 
+const word1 = "hand";
+const word2 = "reach";
 mockSynSets.set("hand", [
   [
     new Set<string>(["angle", "aspect", "facet"]),
@@ -25,35 +26,32 @@ mockSynSets.set("reach", [
     new Set<string>(["ambit", "breadth"]),
   ],
 ]);
-mockSynSets.set("test1", [[new Set<string>(["1"])]]);
-mockSynSets.set("test2", [
-  [new Set<string>(["test1", "2"]), new Set<string>(["3", "4"])],
-  [new Set<string>(["1", "3"]), new Set<string>(["5", "6"])],
-]);
 
 const mockDictionary = {} as Dictionary;
 mockDictionary.GetSynonyms = async (string: string) =>
   ({ data: mockSynSets.get(string), type: "success" } as APIResponse);
 
-test("synonym initiation", async () => {
+test("initiating and loading synonym", async () => {
   const word = "hand";
-  let synDef = new SynonymCollection(word);
-  await synDef.Load(mockDictionary);
-  synDef.WasFetched;
-  expect(synDef.WasFetched).toBe(true);
-  expect(synDef.IsEmpty).toBe(false);
-  expect(synDef.definitionSets).toBe(mockSynSets.get(word));
+  const synonym1 = new SynonymCollection(word1);
+  await synonym1.Load(mockDictionary);
+
+  expect(synonym1.WasFetched).toBe(true);
+  expect(synonym1.IsEmpty).toBe(false);
+  expect(synonym1.definitionSets).toBe(mockSynSets.get(word));
 });
 
-test("synonym crossing", async () => {
-  let synDef1 = new SynonymCollection("hand");
-  await synDef1.Load(mockDictionary);
-  let synDef2 = new SynonymCollection("reach");
-  await synDef2.Load(mockDictionary);
+test("crossing two synonyms", async () => {
+  const synonym1 = new SynonymCollection(word1);
+  const synonym2 = new SynonymCollection(word2);
+  await synonym1.Load(mockDictionary);
+  await synonym2.Load(mockDictionary);
 
-  const results = CrossReference([synDef1, synDef2]);
+  const results = CrossReference([synonym1, synonym2]);
+  expect(results.length).toBeGreaterThan(0);
   //expect(results).toBe(1);
-  expect(results[results.length - 1].name).toBe("ambit");
+  expect(SynonymCloud.GetSorted(results, word1)[0].name).toBe("breadth");
+  expect(SynonymCloud.GetSorted(results, word2)[0].name).toBe("angle");
 });
 
 test("live test", async () => {
@@ -64,6 +62,6 @@ test("live test", async () => {
   await syn2.Load(dict);
 
   const results = SynonymCloud.GetSorted(CrossReference([syn1, syn2]), "good");
-
+  expect(results.length).toBeGreaterThan(0);
   expect(results[0].name).toBe("sweet");
 });

@@ -21,21 +21,24 @@ const colorMap = new Map([
   ["forest", "green"],
 ]);
 
-test("Normals pipeline", () => {
-  const colorNormal = new ColorNormal(wordNormal1, colorMap);
-  expect(colorNormal.IsValid).toBe(true);
+const colorNormal1 = new ColorNormal(wordNormal1, colorMap);
+const colorNormal2 = new ColorNormal(wordNormal2, colorMap);
+
+test("converting normals to gradient", () => {
+  expect(colorNormal1.IsValid).toBe(true);
+  expect(colorNormal2.IsValid).toBe(true);
 
   const noColorsNormal = new ColorNormal(wordNormal1, new Map());
   expect(noColorsNormal.IsValid).toBe(false);
 
-  const gradient = colorNormal.ToGradient();
+  const gradient = colorNormal1.ToGradient();
   expect(gradient[0].width).toBe(0.2);
+  expect(gradient[0].color).toBe("blue");
 });
 
-test("lerp rectangle", () => {
+test("lerping rectangles", () => {
   const rect1 = { bottom: 0, left: 0, height: 0, width: 0, color: "blue" };
   const rect2 = { bottom: 1, left: 1, height: 1, width: 1, color: "red" };
-  const test = LerpRectangles(0.5, rect1, rect2);
   const result = {
     bottom: 0.5,
     left: 0.5,
@@ -43,20 +46,19 @@ test("lerp rectangle", () => {
     width: 0.5,
     color: "red",
   };
-  expect(test).toEqual(result);
+  expect(LerpRectangles(0.5, rect1, rect2)).toEqual(result);
 });
 
-test("convert normals to transition rectangles", () => {
+test("converting normals to transition rectangles", () => {
   const size = { width: 100, height: 50 };
-  const startRects = new ColorNormal(wordNormal1, colorMap)
-    .ToGradient()
-    .ToRectangle(size);
+  const startRects = colorNormal1.ToGradient().ToRectangle(size);
   expect(startRects.length).toEqual(3);
   expect(startRects[1].width).toEqual(30);
 
-  const endRects = new ColorNormal(wordNormal2, colorMap)
-    .ToGradient()
-    .ToRectangle(size);
+  const endRects = colorNormal2.ToGradient().ToRectangle(size);
+  expect(endRects.length).toEqual(2);
+  expect(endRects[1].width).toEqual(50);
+
   const [alignedStart, alignedEnd] = AlignRectangles(startRects, endRects);
   expect(alignedEnd.length).toEqual(3);
 });
