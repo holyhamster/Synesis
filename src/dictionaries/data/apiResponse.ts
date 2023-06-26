@@ -18,4 +18,5 @@ interface ErrorResponse {
 export enum APIErrorEnum {
   WrongAPIkey = "Server denies request, check API key",
   NoWord = "No word in the database",
+  Parsing = "Can't parse the response",
 }
