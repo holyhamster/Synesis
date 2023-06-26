@@ -20,9 +20,14 @@ export async function BHLParse(
   targetWord: string,
   response: Response
 ): Promise<APIResponse> {
+  if (response.status == 500)
+    return { type: "error", errorMessage: APIErrorEnum.WrongAPIkey };
+  if (response.status == 404)
+    return { type: "error", errorMessage: APIErrorEnum.NoWord };
+  if (!response.ok)
+    return { type: "error", errorMessage: APIErrorEnum.Network };
+
   try {
-    if (!response.ok)
-      throw new Error(`Something went wrong: ${response.status}`);
     const text = await response.text();
     if (!text) throw new Error(`empty response`);
 
