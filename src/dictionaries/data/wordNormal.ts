@@ -29,32 +29,22 @@ export default class WordNormal extends Array<{ word: string; value: number }> {
 }
 
 //determines a weight of every dimension of the array for a total amount to be 1
-//every next dimension takes a space equal to a single unit of the previous one
-//[2, 0, 2] => [0.375/2, 0, 0.25/2]
-export function CalculateWeights(sum: number[]) {
-  const dWeigh: number[] = [];
-  sum.forEach((_) => dWeigh.push(0));
-  let valueLeft = 1;
-  let valueSetAside = 0;
-  let emptyDimensions = 0;
-  const emptyDimensionPenalty = 0.5;
-  const ln = dWeigh.length;
-  for (let i = 0; i < ln; i++) {
-    if (!sum[i]) {
-      emptyDimensions += 1;
-      valueSetAside += valueLeft * emptyDimensionPenalty;
-      valueLeft *= emptyDimensionPenalty;
-    } else {
-      const remainingParts = (sum[i] || 0) + 1;
-      dWeigh[i] = valueLeft * (1 - 1 / remainingParts);
-      valueLeft -= dWeigh[i];
-    }
+//every next dimension takes a space less than a single unit of the previous one
+//[1, 1, 1] => [0.65, 0.25, 0.1]
+export function CalculateWeights(quantities: number[]) {
+  const weights: number[] = [];
+  const orderWeightIncrease = 0.3;
+  let unitWeight = 1;
+  let totalWeight = 0;
+  for (let i = quantities.length - 1; i >= 0; i--) {
+    const currentQ = quantities[i];
+    weights[i] = currentQ ? unitWeight : 0;
+    if (!currentQ) continue;
+
+    const columnWeight = unitWeight * currentQ;
+    totalWeight += columnWeight;
+    unitWeight = Math.ceil(columnWeight * (1 + orderWeightIncrease));
   }
 
-  for (let i = 0; i < ln; i++) {
-    if (!sum[i]) continue;
-    dWeigh[i] += (valueLeft + valueSetAside) / (ln - emptyDimensions);
-  }
-
-  return dWeigh.map((weight, index) => (sum[index] ? weight / sum[index] : 0));
+  return weights.map((val) => (totalWeight ? val / totalWeight : 0));
 }
