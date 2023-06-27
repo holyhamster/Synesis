@@ -1,6 +1,7 @@
 import { DeviceEventEmitter, View } from "react-native";
 import {
   DictionaryKeyRequirement,
+  DictionaryName,
   DictionaryRegistrationLinks,
   DictionaryType,
 } from "../../dictionaries/dictionary";
@@ -43,7 +44,7 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
         ).then(() => DeviceEventEmitter.emit(EventsEnum.ApiChanged));
       } else {
         toast.show(
-          `Please provide an API key to use ${dictionaryType} dictionary`
+          `Please provide a key to use ${DictionaryName[dictionaryType]} API`
         );
       }
     };
@@ -59,6 +60,7 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
     return {
       name: dictionaryType,
       state: currentDictionaryType == dictionaryType,
+      text: DictionaryName[dictionaryType],
     };
   });
 
@@ -70,7 +72,7 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
     if (DictionaryKeyRequirement[dictionaryType]) {
       navigation.navigate("InputModal", {
         varName: dictionaryType,
-        varHint: `Enter API key for ${dictionaryType}`,
+        varHint: `Enter a key for ${DictionaryName[dictionaryType]} API`,
         varLink: DictionaryRegistrationLinks[dictionaryType], //todo move into personalized api section
         eventName: EventsEnum.ApiKeyEntered,
       });
@@ -87,14 +89,14 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
 
   return (
     <View>
-      {apiTogglesData.map(({ name, state }) => (
+      {apiTogglesData.map(({ name, state, text }) => (
         <TitledToggle
           key={name}
           onValueChange={() => {
             onTogglePress(name);
           }}
           state={state}
-          title={name}
+          title={text}
         />
       ))}
     </View>

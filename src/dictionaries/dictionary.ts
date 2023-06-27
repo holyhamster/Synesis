@@ -48,3 +48,10 @@ export const DictionaryRegistrationLinks = {
     "https://words.bighugelabs.com/account/getkey",
   [DictionaryType.Datamuse]: "",
 };
+
+export const DictionaryName = {
+  [DictionaryType.Self]: "Default (Datamuse)",
+  [DictionaryType.Meriam]: "Merriam-Webster",
+  [DictionaryType.Datamuse]: "Datamuse",
+  [DictionaryType.BigHugeThesarus]: "BigHugeThesarus",
+};

@@ -90,13 +90,13 @@ const styles = StyleSheet.create<InputModalStyleProps>({
     justifyContent: "center",
     textAlign: "center",
   },
-  linkText: { fontSize: 20, color: "blue" },
+  linkText: { fontSize: 20, color: "blue", textAlign: "center" },
   parentView: {
     flex: 1,
     alignItems: "center",
     gap: 10,
     justifyContent: "center",
   },
-  hintText: { fontSize: 25 },
+  hintText: { fontSize: 25, textAlign: "center" },
 });
 export default InputModal;
