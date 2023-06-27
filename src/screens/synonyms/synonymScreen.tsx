@@ -13,7 +13,7 @@ import {
 import WordInputField from "./wordInputField";
 import SynonymList from "./synonymList";
 import Dictionary from "../../dictionaries/dictionary";
-import { HomeProps } from "../../navigation";
+import { SynesisProps } from "../../navigation";
 import { EventsEnum } from "../../events";
 import { GetCurrentDictionary } from "../../dictionaries/dictionaryLoading";
 import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
@@ -24,7 +24,7 @@ import MaterialButton from "../materialButton";
 import { useSynonyms } from "../../dictionaries/data/useSynonyms";
 import { OptionSectionsEnum } from "../options/optionsScreen";
 
-const SynonymScreen: FC<HomeProps> = ({ navigation }) => {
+const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
   //check if hints need to be shown and listen an event if it changes
   const [showingHint, setShowingHint] = React.useState(-1);
   useEffect(() => {

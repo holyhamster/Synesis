@@ -17,7 +17,7 @@ export default function App() {
         <NavigationContainer>
           <Stack.Navigator>
             <Stack.Screen
-              name="Home"
+              name="Synesis"
               component={SynonymScreen}
               options={{ headerShown: false }}
             />
