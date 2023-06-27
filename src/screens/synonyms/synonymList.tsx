@@ -20,6 +20,7 @@ import SynonymWord from "./synonymWord";
 import SynonymCollection from "../../dictionaries/data/synonymCollection";
 import { EventsEnum } from "../../events";
 import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
+import BackgroundImage from "./backgroundImage";
 
 interface SynonymListProps {
   synonyms: SynonymCollection[];
@@ -110,25 +111,31 @@ const SynonymList: FC<SynonymListProps> = ({
     ));
 
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      style={{ zIndex: zIndex }}
-      fadingEdgeLength={1}
-      snapToEnd={true}
-      contentContainerStyle={styles.synonymScrollContainer}
-    >
-      {Platform.OS == "android" ? (
-        <Transitioning.View
-          ref={transitionViewRef}
-          style={styles.innerView}
-          transition={transition}
-        >
-          {cloudComponents}
-        </Transitioning.View>
-      ) : (
-        <View style={styles.innerView}>{cloudComponents}</View>
-      )}
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      <BackgroundImage
+        source={require("../../../assets/icon.png")}
+        faded={clouds.length > 0}
+      />
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        style={{ zIndex: zIndex }}
+        fadingEdgeLength={1}
+        snapToEnd={true}
+        contentContainerStyle={styles.synonymScrollContainer}
+      >
+        {Platform.OS == "android" ? (
+          <Transitioning.View
+            ref={transitionViewRef}
+            style={styles.innerView}
+            transition={transition}
+          >
+            {cloudComponents}
+          </Transitioning.View>
+        ) : (
+          <View style={styles.innerView}>{cloudComponents}</View>
+        )}
+      </ScrollView>
+    </View>
   );
 };
 
