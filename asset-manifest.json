@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.js": "/static/js/main.d91dc7f2.js",
-    "static/js/709.43dd409b.js": "/static/js/709.43dd409b.js",
-    "static/media/MaterialIcons.ttf": "/static/media/MaterialIcons.120b4c7bbd155bd0a04d.ttf",
-    "static/media/icon.png": "/static/media/icon.ac02a88b55326f25267d.png",
-    "favicon.ico": "/favicon.ico",
-    "index.html": "/index.html",
-    "favicon-32.png": "/favicon-32.png",
-    "favicon-16.png": "/favicon-16.png",
-    "serve.json": "/serve.json",
-    "manifest.json": "/manifest.json",
-    "main.d91dc7f2.js.map": "/static/js/main.d91dc7f2.js.map",
-    "709.43dd409b.js.map": "/static/js/709.43dd409b.js.map"
+    "main.js": "/Synesis/static/js/main.37148226.js",
+    "static/js/709.1a69a44e.js": "/Synesis/static/js/709.1a69a44e.js",
+    "static/media/MaterialIcons.ttf": "/Synesis/static/media/MaterialIcons.120b4c7bbd155bd0a04d.ttf",
+    "static/media/icon.png": "/Synesis/static/media/icon.ac02a88b55326f25267d.png",
+    "favicon.ico": "/Synesis/favicon.ico",
+    "index.html": "/Synesis/index.html",
+    "favicon-32.png": "/Synesis/favicon-32.png",
+    "favicon-16.png": "/Synesis/favicon-16.png",
+    "serve.json": "/Synesis/serve.json",
+    "manifest.json": "/Synesis/manifest.json",
+    "main.37148226.js.map": "/Synesis/static/js/main.37148226.js.map",
+    "709.1a69a44e.js.map": "/Synesis/static/js/709.1a69a44e.js.map"
   },
   "entrypoints": [
-    "static/js/709.43dd409b.js",
-    "static/js/main.d91dc7f2.js"
+    "static/js/709.1a69a44e.js",
+    "static/js/main.37148226.js"
   ]
 }
