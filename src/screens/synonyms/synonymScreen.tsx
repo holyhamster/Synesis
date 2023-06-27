@@ -15,7 +15,7 @@ import SynonymList from "./synonymList";
 import Dictionary from "../../dictionaries/dictionary";
 import { HomeProps } from "../../navigation";
 import { EventsEnum } from "../../events";
-import { GetCurrentDictionary } from "../../dictionaries/dictionaryOptions";
+import { GetCurrentDictionary } from "../../dictionaries/dictionaryLoading";
 import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import WordListView from "./wordListView";
 import HintOverlay from "./hintOverlay";

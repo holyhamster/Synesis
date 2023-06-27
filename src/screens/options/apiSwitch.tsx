@@ -13,7 +13,7 @@ import { EventsEnum } from "../../events";
 import {
   LoadCurrentDictionaryType,
   SaveCurrentDictionaryType,
-} from "../../dictionaries/dictionaryOptions";
+} from "../../dictionaries/dictionaryLoading";
 import TitledToggle from "../titledToggle";
 
 interface ApiSwitchProps {
