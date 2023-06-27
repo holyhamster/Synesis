@@ -5,7 +5,7 @@ import {
 import { OptionSectionsEnum } from "./screens/options/optionsScreen";
 
 export type StackParamList = {
-  Home: undefined;
+  Synesis: undefined;
   Options: { unravel?: OptionSectionsEnum };
   InputModal: {
     eventName: string;
@@ -14,7 +14,7 @@ export type StackParamList = {
     varLink: string | undefined;
   };
 };
-export type HomeProps = NativeStackScreenProps<StackParamList, "Home">;
+export type SynesisProps = NativeStackScreenProps<StackParamList, "Synesis">;
 export type OptionsProps = NativeStackScreenProps<StackParamList, "Options">;
 export type InputModalProps = NativeStackScreenProps<
   StackParamList,
