@@ -15,7 +15,7 @@ import { OptionsProps } from "../../navigation";
 import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import { EventsEnum } from "../../events";
 import * as Colors from "../../colors";
-import TileCountSwitch from "./tileCountSwitch";
+import CloudCountSwitch from "./cloudCountSwitch";
 import * as Haptics from "expo-haptics";
 
 const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
@@ -26,7 +26,7 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
   }, []);
 
   const accordionContents = {
-    [OptionSectionsEnum.Display]: <TileCountSwitch />,
+    [OptionSectionsEnum.Display]: <CloudCountSwitch />,
     [OptionSectionsEnum.API]: <ApiSwitch navigation={navigation} />,
     [OptionSectionsEnum.About]: (
       <Text style={styles.linkText} onPress={() => Linking.openURL(ABOUT_LINK)}>
