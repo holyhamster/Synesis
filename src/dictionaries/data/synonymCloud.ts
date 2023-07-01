@@ -47,7 +47,7 @@ export default class SynonymCloud {
     if (!word || word == "") return result;
     result.sort(
       (a, b) =>
-        (a.GetWordMap().get(word) || 0) - (b.GetWordMap().get(word) || 0)
+        (b.GetWordMap().get(word) || 0) - (a.GetWordMap().get(word) || 0)
     );
     return result;
   }
@@ -97,5 +97,5 @@ export function CrossReference(collections: SynonymCollection[]) {
           } else getCloud(word).addConnection(collection.Word, 0);
         }
 
-  return Array.from(map.values());
+  return map;
 }
