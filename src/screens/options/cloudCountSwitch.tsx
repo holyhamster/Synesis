@@ -4,22 +4,22 @@ import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import Slider from "@react-native-community/slider";
 import { EventsEnum } from "../../events";
 
-interface TileCountSwitchProps {}
+interface CloudCountSwitchProps {}
 
-const TileCountSwitch: FC<TileCountSwitchProps> = ({}) => {
+const CloudCountSwitch: FC<CloudCountSwitchProps> = ({}) => {
   const [tileCount, setTileCount] = useState<number>(-1);
   const sliderRef = useRef<any>();
 
   if (tileCount == -1)
-    Storage.GetString(StringTypesEnum.TileCount).then((stringValue) => {
+    Storage.GetString(StringTypesEnum.CloudCount).then((stringValue) => {
       const numberValue = stringToTilecount(stringValue);
       setTileCount(numberValue);
     });
 
   const onValChange = (newVal: number) => {
-    Storage.SetString(StringTypesEnum.TileCount, tilecountToString(newVal));
+    Storage.SetString(StringTypesEnum.CloudCount, tilecountToString(newVal));
     setTileCount(newVal);
-    DeviceEventEmitter.emit(EventsEnum.TileCountChanged);
+    DeviceEventEmitter.emit(EventsEnum.CloudCountChanged);
   };
   //console.log((sliderRef?.current).value);
 
@@ -74,4 +74,4 @@ const tileValues = {
   default: 30,
 };
 
-export default TileCountSwitch;
+export default CloudCountSwitch;
