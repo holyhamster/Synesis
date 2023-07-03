@@ -6,24 +6,20 @@ import {
   View,
   ActivityIndicator,
   DeviceEventEmitter,
-  Text,
-  TouchableOpacity,
 } from "react-native";
 
-import WordInputField from "./wordInputField";
 import SynonymList from "./synonymList";
 import Dictionary from "../../dictionaries/dictionary";
 import { SynesisProps } from "../../navigation";
 import { EventsEnum } from "../../events";
 import { GetCurrentDictionary } from "../../dictionaries/dictionaryLoading";
 import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
-import WordListView from "./wordListView";
 import HintOverlay from "./hintOverlay";
 import * as Colors from "../../colors";
-import MaterialButton from "../materialButton";
 import { useSynonyms } from "../../dictionaries/data/useSynonyms";
-import { OptionSectionsEnum } from "../options/optionsScreen";
+import ControlPanelView from "./controlPanel";
 
+//main screen
 const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
   //check if hints need to be shown and listen an event if it changes
   const [showingHint, setShowingHint] = React.useState(-1);
@@ -83,40 +79,6 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
     synonyms.map((element) => element.Word)
   );
 
-  //tooltip text at the top of the screen
-  const [listTooltip, setListTooltip] = useState("");
-
-  const addAndHighlight = useCallback(
-    (word) => {
-      addWord(word);
-      setHighlightedWord(word);
-    },
-    [addWord, setHighlightedWord]
-  );
-
-  const menuSegment = (
-    <View style={styles.menuSection}>
-      <MaterialButton
-        onPress={() => navigation.navigate("Options")}
-        name="settings"
-        style={{ size: 40, opacity: 0.8 }}
-      />
-
-      {listTooltip != "" && (
-        <TouchableOpacity
-          style={styles.hiddenElementsTooltip}
-          onPress={() => {
-            navigation.navigate("Options", {
-              unravel: OptionSectionsEnum.Display,
-            });
-          }}
-        >
-          <Text>{listTooltip}</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
   const wordsBeingFetched =
     synonyms.find((synonym) => !synonym.WasFetched) != null;
 
@@ -136,13 +98,8 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
         )}
         colorMap={colorRef.current}
         addNewWord={addWord}
-        addAndHiglight={addAndHighlight}
         wordToSortBy={highlightedWord}
-        showTooltip={(tooltip) => setListTooltip(tooltip)}
       />
-
-      {menuSegment}
-
       <View style={styles.connectionIndicator}>
         <ActivityIndicator
           pointerEvents="none"
@@ -152,19 +109,17 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
         />
       </View>
 
-      <View style={styles.selectedList}>
-        <WordListView
-          synonymArray={synonyms}
+      <View style={styles.controlView}>
+        <ControlPanelView
+          synonyms={synonyms}
           colorMap={colorRef.current}
-          highlighted={highlightedWord}
+          highlightedWord={highlightedWord}
           onClearButton={clearWords}
-          onPress={(word) => removeWord(word)}
-          onLongPress={(word) => setHighlightedWord(word)}
+          onWordPress={(word) => removeWord(word)}
+          onWordLongPress={(word) => setHighlightedWord(word)}
+          onOptions={() => navigation.navigate("Options")}
+          onAddWord={addWord}
         />
-      </View>
-
-      <View style={styles.inputContainer}>
-        <WordInputField onAddWord={addWord} />
       </View>
     </SafeAreaView>
   );
@@ -187,30 +142,7 @@ const styles = StyleSheet.create({
     alignContent: "center",
   },
 
-  inputContainer: {
-    flexDirection: "row",
-    backgroundColor: Colors.AccentColor,
-    paddingVertical: 5,
-  },
-
-  menuSection: {
-    flexDirection: "row",
-    position: "absolute",
-    left: "5%",
-    top: "5%",
-    zIndex: 1,
-  },
-
-  hiddenElementsTooltip: {
-    left: 5,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderRadius: 15,
-    paddingHorizontal: 5,
-    backgroundColor: Colors.BGWhite,
-  },
-  selectedList: {
+  controlView: {
     backgroundColor: Colors.AccentColor,
     paddingVertical: 5,
   },

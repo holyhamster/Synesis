@@ -18,20 +18,21 @@ interface SynonymWordProps {
   word: string;
   colorNormal: ColorNormal;
   onPress: (word: string) => void;
-  onLongPress: (word: string) => void;
   style?: ViewStyle;
 }
 
-//pressable tile with a word and a color gradient of given color normal
+//pressable tile with a word and a sharp color gradient for given color normal
 const SynonymWord: FC<SynonymWordProps> = memo(
-  ({ colorNormal, word, onPress, onLongPress, style: propStyle }) => {
-    const [layoutSize, setLayoutSize] = useState<{
-      height: number;
-      width: number;
-    }>({
-      height: 0,
-      width: 0,
-    });
+  ({ colorNormal, word, onPress, style: propStyle }) => {
+    //run the animation when the component mounts and unmounts
+    const viewOpacity = React.useRef(new Animated.Value(0)).current;
+    React.useEffect(() => {
+      Animated.timing(viewOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+    }, []);
 
     const styles = useMemo(() => {
       const { zIndex = 0 } = propStyle ?? {};
@@ -50,23 +51,17 @@ const SynonymWord: FC<SynonymWordProps> = memo(
       });
     }, [propStyle]);
 
+    //size of the tile is calculate via layout event
+    const [layoutSize, setLayoutSize] = useState({
+      height: 0,
+      width: 0,
+    });
     const onLayout = ({ nativeEvent }) => {
       setLayoutSize({
         height: nativeEvent.layout.height,
         width: nativeEvent.layout.width,
       });
     };
-
-    // use effect hook to run the animation when the component mounts and unmounts
-    const viewOpacity = React.useRef(new Animated.Value(0)).current;
-    React.useEffect(() => {
-      // fade in the component when it mounts
-      Animated.timing(viewOpacity, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }, []);
 
     return (
       <Animated.View style={{ opacity: viewOpacity }}>
@@ -76,9 +71,6 @@ const SynonymWord: FC<SynonymWordProps> = memo(
             foreground: true,
           }}
           onPress={() => onPress(word)}
-          onLongPress={() => {
-            onLongPress(word);
-          }}
           style={({ pressed }) => ({
             opacity: Platform.OS != "android" && pressed ? 0.6 : 1,
           })}

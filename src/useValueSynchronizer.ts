@@ -1,48 +1,57 @@
 import React from "react";
 
-//maintains an array of values
-//sends new assigned values to all registered for live updates
+//maintains an array of variables and accompanying callbacks, that are called syncronously when the value is changed
+
+//Key extractor must produce a unique key for each of the variable
+//setters are paired to a variable through a key
+//when the variables are updated, accompanying setters are called with an updated variable
 export function useValueSynchronizer<T>(
-  keyExtractor: (array: T[]) => Map<string, T>
+  keyProducer: (array: T[]) => Map<string, T>
 ) {
-  const [values, setValues] = React.useState<T[]>([]);
+  const [array, setArray] = React.useState<T[]>([]);
 
-  //used to identify setters in an array
-  const [keys, setKeys] = React.useState(keyExtractor(values));
+  //used to identify callbacks in an array
+  const [keys, setKeys] = React.useState(keyProducer(array));
 
-  //setters are stored along their keys and called when the value is changed
-  type Setter = (val: T) => void;
+  //callbacks are stored along their keys and called when the value is updated
+  type Callback = (val: T) => void;
 
-  const setters = React.useRef(new Map<string, Setter>());
+  const callbacks = React.useRef(new Map<string, Callback>());
+  const registerCallback = React.useCallback(
+    (key: string, callback: Callback) => {
+      callbacks.current.set(key, callback);
+    },
+    []
+  );
 
-  removeUnusedSetters(setters, keys);
+  //if callbacks keys are not in the key array, delete them
+  removeMissingMapEntries(callbacks.current, keys);
 
-  const registerSetter = React.useCallback((key: string, setter: Setter) => {
-    setters.current.set(key, setter);
-  }, []);
-
-  //sets the value to state, calls all setters with the new value
-  const setArray = React.useCallback(
+  //sets the value to state, calls all callbacks with the new value
+  const setArrayAndUpdate = React.useCallback(
     (arrayOrCallback: T[] | ((previous) => T[])) => {
-      setValues((previous: T[]) => {
-        const array =
+      setArray((previous: T[]) => {
+        const newArray =
           typeof arrayOrCallback == "function"
             ? arrayOrCallback(previous)
             : arrayOrCallback;
-        const newKeys = keyExtractor(array);
-        newKeys.forEach((value, key) => setters.current.get(key)?.(value));
+        const newKeys = keyProducer(newArray);
+        newKeys.forEach((value, key) => callbacks.current.get(key)?.(value));
         setKeys(newKeys);
-        return array;
+        return newArray;
       });
     },
-    [setValues, setKeys, keyExtractor]
+    [setArray, setKeys, keyProducer]
   );
 
-  return { array: values, setArray, registerSetter, keys };
+  return { array: array, setArray: setArrayAndUpdate, registerCallback, keys };
 }
 
-function removeUnusedSetters(setters, keys) {
-  setters.current.forEach((_, key) => {
-    if (!keys.has(key)) setters.current.delete(key);
+function removeMissingMapEntries<TKey>(
+  removeFrom: Map<TKey, any>,
+  missingFrom: Map<TKey, any>
+) {
+  removeFrom.forEach((_, key) => {
+    if (!missingFrom.has(key)) removeFrom.delete(key);
   });
 }

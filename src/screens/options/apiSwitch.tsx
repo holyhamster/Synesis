@@ -27,6 +27,40 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
   const [currentDictionaryType, setCurrentDictionaryType] =
     React.useState<DictionaryType>();
 
+  //create data for each API in the dictionary
+  const apiTogglesData = Object.values(DictionaryType).map((dictionaryType) => {
+    return {
+      name: dictionaryType,
+      state: currentDictionaryType == dictionaryType,
+      text: DictionaryName[dictionaryType],
+    };
+  });
+
+  //popup modal when a toggle is pressed
+  const onTogglePress = (dictionaryType: DictionaryType) => {
+    const { state: enabled } = apiTogglesData.find(
+      ({ name }) => name == dictionaryType
+    );
+
+    if (DictionaryKeyRequirement[dictionaryType]) {
+      navigation.navigate("InputModal", {
+        varName: dictionaryType,
+        varHint: `Enter a key for ${DictionaryName[dictionaryType]} API`,
+        varLink: DictionaryRegistrationLinks[dictionaryType], //todo move into personalized api section
+        eventName: EventsEnum.ApiKeyEntered,
+      });
+      return;
+    }
+
+    if (!enabled) {
+      setCurrentDictionaryType(dictionaryType);
+      SaveCurrentDictionaryType(dictionaryType).then(() =>
+        DeviceEventEmitter.emit(EventsEnum.ApiChanged)
+      );
+    }
+  };
+
+  //listen to the event of modal resolution
   React.useEffect(() => {
     LoadCurrentDictionaryType().then((result) =>
       setCurrentDictionaryType(result)
@@ -55,37 +89,6 @@ export const ApiSwitch: FC<ApiSwitchProps> = ({ navigation }) => {
     );
     return () => subscription.remove();
   }, []);
-
-  const apiTogglesData = Object.values(DictionaryType).map((dictionaryType) => {
-    return {
-      name: dictionaryType,
-      state: currentDictionaryType == dictionaryType,
-      text: DictionaryName[dictionaryType],
-    };
-  });
-
-  const onTogglePress = (dictionaryType: DictionaryType) => {
-    const { state: enabled } = apiTogglesData.find(
-      ({ name }) => name == dictionaryType
-    );
-
-    if (DictionaryKeyRequirement[dictionaryType]) {
-      navigation.navigate("InputModal", {
-        varName: dictionaryType,
-        varHint: `Enter a key for ${DictionaryName[dictionaryType]} API`,
-        varLink: DictionaryRegistrationLinks[dictionaryType], //todo move into personalized api section
-        eventName: EventsEnum.ApiKeyEntered,
-      });
-      return;
-    }
-
-    if (!enabled) {
-      setCurrentDictionaryType(dictionaryType);
-      SaveCurrentDictionaryType(dictionaryType).then(() =>
-        DeviceEventEmitter.emit(EventsEnum.ApiChanged)
-      );
-    }
-  };
 
   return (
     <View>

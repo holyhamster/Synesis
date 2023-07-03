@@ -19,7 +19,7 @@ interface RectProps {
   ) => void;
 }
 
-//View rectangle animated to change its size from start to finish according to progressValue
+//Views animated to lerp size according to transition and progressValue
 const AnimatedRect: FC<RectProps> = ({
   animationProgress,
   transition,
@@ -43,7 +43,7 @@ const AnimatedRect: FC<RectProps> = ({
     [style]
   );
 
-  //runs on the UI threat every time animation value changes
+  //runs on the UI threat every time animation progress changes
   const animatedStyle =
     useAnimatedStyle((): Animated.AnimateStyle<ViewStyle> => {
       const { start, end } = transitionRef.value;

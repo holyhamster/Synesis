@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
-interface MaterialButtonStyle {
+export interface MaterialButtonStyle {
   backgroundColor?: string;
   countourColor?: string;
   disabledCountourColor?: string;
@@ -14,8 +14,10 @@ interface MaterialButtonProps {
   style?: MaterialButtonStyle;
   disabled?: boolean;
   name: keyof typeof MaterialIcons.glyphMap;
-  onPress: () => void;
+  onPress?: () => void;
 }
+
+//a button with a material icon
 const MaterialButton: FC<MaterialButtonProps> = ({
   disabled,
   style,

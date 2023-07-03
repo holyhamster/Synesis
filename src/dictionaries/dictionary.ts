@@ -1,5 +1,9 @@
 import { APIErrorEnum, APIResponse } from "./data/apiResponse";
 
+type getURL = (word: string, apiKey?: string) => string;
+type parseResponse = (word: string, response: Response) => Promise<APIResponse>;
+type normalizeWord = (string: string) => string;
+
 //fetches information about a word from an API and parses it into a synonym
 export default class Dictionary {
   constructor(
@@ -22,10 +26,6 @@ export default class Dictionary {
       );
   }
 }
-
-type getURL = (word: string, apiKey?: string) => string;
-type parseResponse = (word: string, response: Response) => Promise<APIResponse>;
-type normalizeWord = (string: string) => string;
 
 export enum DictionaryType {
   Self = "Default",
