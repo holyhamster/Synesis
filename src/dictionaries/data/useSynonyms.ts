@@ -1,7 +1,8 @@
 import React, { useEffect, useCallback, useState } from "react";
+import { useToast } from "react-native-toast-notifications";
+
 import SynonymCollection from "./synonymCollection";
 import Dictionary from "../dictionary";
-import { useToast } from "react-native-toast-notifications";
 
 //react hook that provides tools for interracting with synonym collections
 export function useSynonyms(

@@ -5,24 +5,6 @@ export default class WordNormal extends Array<{ word: string; value: number }> {
     super();
   }
 
-  public static Build(connections: Map<string, number[]>, sum: number[]) {
-    const normal = new WordNormal();
-    const connectionWeights = CalculateWeights(sum);
-
-    for (const [word, mentions] of connections) {
-      let val = 0;
-      for (let i = 0; i < mentions.length; i++)
-        val += connectionWeights[i] * mentions[i] || 0;
-
-      normal.push({
-        word: word,
-        value: parseFloat(val.toFixed(5)),
-      });
-    }
-
-    return normal;
-  }
-
   public static Copy(copy: WordNormal) {
     return [...copy];
   }
