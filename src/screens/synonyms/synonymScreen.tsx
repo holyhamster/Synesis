@@ -6,8 +6,6 @@ import {
   View,
   ActivityIndicator,
   DeviceEventEmitter,
-  Text,
-  TouchableOpacity,
 } from "react-native";
 
 import SynonymList from "./synonymList";
@@ -21,6 +19,7 @@ import * as Colors from "../../colors";
 import { useSynonyms } from "../../dictionaries/data/useSynonyms";
 import ControlPanelView from "./controlPanel";
 
+//main screen
 const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
   //check if hints need to be shown and listen an event if it changes
   const [showingHint, setShowingHint] = React.useState(-1);
@@ -80,14 +79,6 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
     synonyms.map((element) => element.Word)
   );
 
-  const addAndHighlight = useCallback(
-    (word) => {
-      addWord(word);
-      setHighlightedWord(word);
-    },
-    [addWord, setHighlightedWord]
-  );
-
   const wordsBeingFetched =
     synonyms.find((synonym) => !synonym.WasFetched) != null;
 
@@ -107,7 +98,6 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
         )}
         colorMap={colorRef.current}
         addNewWord={addWord}
-        addAndHiglight={addAndHighlight}
         wordToSortBy={highlightedWord}
       />
       <View style={styles.connectionIndicator}>

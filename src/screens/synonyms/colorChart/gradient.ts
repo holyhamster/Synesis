@@ -3,7 +3,8 @@ import Rectangle from "./rectangle";
 type colorSection = { color: string; start: number; width: number };
 type rectSize = { height: number; width: number };
 
-//[{color:"red", start:0, end: .5}, {color:"blue", start: .5, end: 1}]
+//Sharp color gradient values, example:
+//[{color:"red", start:0, width: .5}, {color:"blue", start: .5, width: .5}]
 export default class Gradient extends Array<colorSection> {
   constructor(...items: colorSection[]) {
     super(...(items ?? []));

@@ -3,7 +3,7 @@ import { DictionaryType } from "./dictionary";
 import { Platform } from "react-native";
 import Storage from "./storageHandling";
 
-//securely handles setting and getting api keys
+//securely handles setting and getting api keys (mobile only)
 export default class Keys {
   static Set(keyType: DictionaryType, key: string) {
     const varName = secureKeyName(keyType);

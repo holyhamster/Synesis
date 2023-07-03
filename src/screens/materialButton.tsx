@@ -16,6 +16,8 @@ interface MaterialButtonProps {
   name: keyof typeof MaterialIcons.glyphMap;
   onPress?: () => void;
 }
+
+//a button with a material icon
 const MaterialButton: FC<MaterialButtonProps> = ({
   disabled,
   style,

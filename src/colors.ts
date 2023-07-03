@@ -11,6 +11,7 @@ function getFreeColor(takenColors: string[]): string {
     : Array.from(set)[Math.floor(Math.random() * set.size)];
 }
 
+//saves values from old map and generates new ones
 export function RebuildColorMap<T>(oldMap: Map<T, string>, keys: T[]) {
   const takenColors = new Set<string>();
   oldMap.forEach((color, key) => {

@@ -1,15 +1,17 @@
-import React, { FC, useRef, useState } from "react";
+import React, { FC, useState } from "react";
 import { DeviceEventEmitter, StyleSheet, Text, View } from "react-native";
-import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import Slider from "@react-native-community/slider";
+
+import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import { EventsEnum } from "../../events";
 
 interface CloudCountSwitchProps {}
 
+//slider that changes the amount of rendered clouds
 const CloudCountSwitch: FC<CloudCountSwitchProps> = ({}) => {
   const [tileCount, setTileCount] = useState<number>(-1);
-  const sliderRef = useRef<any>();
 
+  //on start, load value from memory
   if (tileCount == -1)
     Storage.GetString(StringTypesEnum.CloudCount).then((stringValue) => {
       const numberValue = stringToTilecount(stringValue);
@@ -21,7 +23,6 @@ const CloudCountSwitch: FC<CloudCountSwitchProps> = ({}) => {
     setTileCount(newVal);
     DeviceEventEmitter.emit(EventsEnum.CloudCountChanged);
   };
-  //console.log((sliderRef?.current).value);
 
   return (
     <View
@@ -33,7 +34,6 @@ const CloudCountSwitch: FC<CloudCountSwitchProps> = ({}) => {
       <Text> Tile limit</Text>
       <Text> {tileCount > tileValues.max ? "No limit" : tileCount}</Text>
       <Slider
-        ref={sliderRef}
         style={{
           alignItems: "center",
           width: "90%",

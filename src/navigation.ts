@@ -2,7 +2,10 @@ import {
   NativeStackScreenProps,
   createNativeStackNavigator,
 } from "@react-navigation/native-stack";
+
 import { OptionSectionsEnum } from "./screens/options/optionsScreen";
+
+//paramteres for screen navigation
 
 export type StackParamList = {
   Synesis: undefined;

@@ -16,10 +16,10 @@ import {
   TransitioningView,
 } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
+
 import MaterialButton, { MaterialButtonStyle } from "../materialButton";
 import * as Colors from "../../colors";
 
-//UI element listing selected synonyms
 interface ControlPanelProps {
   synonyms: SynonymCollection[];
   colorMap: Map<string, string>;
@@ -41,14 +41,15 @@ const ControlPanelView: FC<ControlPanelProps> = ({
   onOptions,
   onAddWord,
 }) => {
-  const transitionReference = React.useRef<TransitioningView>();
   const isOnMobile = Platform.OS != "web";
 
+  const transitionReference = React.useRef<TransitioningView>();
   React.useEffect(() => {
     isOnMobile && transitionReference.current.animateNextTransition();
   }, [synonyms]);
 
-  const wordListComponents = synonyms.map(({ Word, IsEmpty, WasFetched }) => {
+  //create selected synonym tiles
+  const synonymComponents = synonyms.map(({ Word, IsEmpty, WasFetched }) => {
     const overrideColor = !WasFetched || IsEmpty || !colorMap.has(Word);
     const wordColor = overrideColor ? Colors.DisabledGrey : colorMap.get(Word);
     const getWordStyle = (pressed: boolean) => ({
@@ -79,7 +80,6 @@ const ControlPanelView: FC<ControlPanelProps> = ({
     onAddWord(newText);
     setInputText("");
   };
-  const inputButtonDisabled = inputText === "";
 
   return (
     <View>
@@ -97,10 +97,10 @@ const ControlPanelView: FC<ControlPanelProps> = ({
             transition={transition}
             ref={transitionReference}
           >
-            {wordListComponents}
+            {synonymComponents}
           </Transitioning.View>
         ) : (
-          <View style={styles.wordList}>{wordListComponents}</View>
+          <View style={styles.wordList}>{synonymComponents}</View>
         )}
       </View>
       <View style={styles.inputContainer}>
@@ -126,7 +126,7 @@ const ControlPanelView: FC<ControlPanelProps> = ({
           />
         </View>
         <MaterialButton
-          disabled={inputButtonDisabled}
+          disabled={inputText === ""}
           name="add"
           onPress={() => onSubmitEditing(inputText)}
           style={styles.materialButtonStyle}

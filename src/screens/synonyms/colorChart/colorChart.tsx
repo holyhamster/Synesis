@@ -19,7 +19,7 @@ interface ColorChartProps {
 }
 
 //Takes in a ColorNormal, draws a rectangle chart with sharp gradients according to it
-//if passed a new ColorNormal, will animate transition to it
+//if passed a different ColorNormal, will animate transition to it
 const ColorChart: FC<ColorChartProps> = ({
   colorNormal,
   animationLength,
@@ -27,7 +27,7 @@ const ColorChart: FC<ColorChartProps> = ({
   style,
 }) => {
   const {
-    registerSetter,
+    registerCallback,
     keys,
     setArray: setTransitions,
     array: transitions,
@@ -61,14 +61,14 @@ const ColorChart: FC<ColorChartProps> = ({
       normalRectangles
     );
 
-    const newRects = newStart.map((_, index) => ({
+    const newTransitions: RectangleTransition[] = newStart.map((_, index) => ({
       start: newStart[index],
       end: newTarget[index],
     }));
 
     setTransitions((previous: RectangleTransition[]) => {
       if (previous.length) restartAnimation();
-      return newRects;
+      return newTransitions;
     });
   }, [colorNormal, size, setTransitions]);
 
@@ -80,7 +80,7 @@ const ColorChart: FC<ColorChartProps> = ({
           dataKey={id}
           key={id}
           animationProgress={animationProgress}
-          registerTransitionUpdates={registerSetter}
+          registerTransitionUpdates={registerCallback}
         />
       ))}
     </View>

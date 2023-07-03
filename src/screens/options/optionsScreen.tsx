@@ -1,3 +1,4 @@
+import React, { FC, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,21 +10,36 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import Accordion from "react-native-collapsible/Accordion";
-import React, { FC, useEffect, useState } from "react";
+import * as Haptics from "expo-haptics";
+
 import ApiSwitch from "./apiSwitch";
 import { OptionsProps } from "../../navigation";
 import Storage, { StringTypesEnum } from "../../dictionaries/storageHandling";
 import { EventsEnum } from "../../events";
 import * as Colors from "../../colors";
 import CloudCountSwitch from "./cloudCountSwitch";
-import * as Haptics from "expo-haptics";
 
 const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
-  const { unravel } = route.params ?? { unravel: undefined };
-  useEffect(() => {
-    const propIndex = Object.keys(OptionSectionsEnum).indexOf(unravel);
-    if (propIndex >= 0) setActiveSessions([propIndex]);
-  }, []);
+  const renderAccordionHeader = (title, index, isActive) => {
+    return (
+      <View key={index} style={{ ...styles.header }}>
+        {isActive ? (
+          <MaterialIcons
+            name="expand-less"
+            size={24}
+            color={Colors.CountourColor}
+          />
+        ) : (
+          <MaterialIcons
+            name="expand-more"
+            size={24}
+            color={Colors.CountourColor}
+          />
+        )}
+        <Text style={styles.title}>{title}</Text>
+      </View>
+    );
+  };
 
   const accordionContents = {
     [OptionSectionsEnum.Display]: <CloudCountSwitch />,
@@ -49,27 +65,6 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
     ),
   };
 
-  const renderAccordionHeader = (title, index, isActive) => {
-    return (
-      <View key={index} style={{ ...styles.header }}>
-        {isActive ? (
-          <MaterialIcons
-            name="expand-less"
-            size={24}
-            color={Colors.CountourColor}
-          />
-        ) : (
-          <MaterialIcons
-            name="expand-more"
-            size={24}
-            color={Colors.CountourColor}
-          />
-        )}
-        <Text style={styles.title}>{title}</Text>
-      </View>
-    );
-  };
-
   const renderAccordingContent = (title) => {
     return (
       <View style={styles.content}>{accordionContents[title]}</View> || null
@@ -80,6 +75,13 @@ const OptionsScreen: FC<OptionsProps> = ({ navigation, route }) => {
   const updateSections = (activeSections: number[]) => {
     setActiveSessions([...activeSections]);
   };
+
+  //unravel certain section if parameter is present
+  const { unravel } = route.params ?? { unravel: undefined };
+  useEffect(() => {
+    const propIndex = Object.keys(OptionSectionsEnum).indexOf(unravel);
+    if (propIndex >= 0) setActiveSessions([propIndex]);
+  }, []);
 
   return (
     <View>

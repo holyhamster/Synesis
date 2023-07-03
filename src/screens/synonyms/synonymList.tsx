@@ -13,6 +13,7 @@ import {
   Transitioning,
   TransitioningView,
 } from "react-native-reanimated";
+
 import SynonymWord from "./synonymWord";
 import SynonymCollection from "../../dictionaries/data/synonymCollection";
 import { EventsEnum } from "../../events";
@@ -26,16 +27,15 @@ interface SynonymListProps {
   colorMap: Map<string, string>;
   wordToSortBy?: string;
   addNewWord: (newWord: string) => void;
-  addAndHiglight: (newWord: string) => void;
   style?: ViewStyle;
 }
+
 //Builds clouds of words from synonyms and displays them in a ScrollList
 const SynonymList: FC<SynonymListProps> = ({
   synonyms,
   colorMap,
   wordToSortBy,
   addNewWord,
-  addAndHiglight,
   style,
 }) => {
   //load tile limit from memory and watch the event for its change
@@ -63,7 +63,7 @@ const SynonymList: FC<SynonymListProps> = ({
     cloudLimit
   );
 
-  //layout transition for tile movement (only on android)
+  //layout transition for tile movement (android only)
   const transitionViewRef = useRef<TransitioningView>();
   const animateTransition = () => {
     if (Platform.OS == "android")
@@ -77,9 +77,9 @@ const SynonymList: FC<SynonymListProps> = ({
   //create cloud components
   const zIndex = style?.zIndex ?? 0;
   const cloudComponents = [];
-  for (let i = 0; i < clouds.length; i++) {
-    if (!clouds[i]) continue;
-    const { name } = clouds[i];
+  for (const cloud of clouds) {
+    if (!cloud) continue;
+    const { name } = cloud;
     const normal = colorNormals.get(name);
     cloudComponents.push(
       <SynonymWord
@@ -87,14 +87,11 @@ const SynonymList: FC<SynonymListProps> = ({
         word={name}
         colorNormal={normal}
         onPress={addNewWord}
-        onLongPress={addAndHiglight}
         style={{ zIndex: zIndex + 1 }}
       />
     );
   }
 
-  const { totalCount, renderedCount } = displayInfo;
-  const tooltip = `Showing: ${renderedCount}/${totalCount}`;
   return (
     <View style={{ flex: 1 }}>
       <BackgroundImage source={BACKGROUND_IMAGE} faded={clouds.length > 0} />
@@ -116,14 +113,12 @@ const SynonymList: FC<SynonymListProps> = ({
         )}
       </ScrollView>
 
-      {tooltip != "" && (
-        <View style={styles.tooltip} pointerEvents="none">
-          <View style={{ ...styles.tooltipBackground, zIndex: zIndex + 10 }} />
-          <Text style={{ ...styles.tooltipText, zIndex: zIndex + 11 }}>
-            {tooltip}
-          </Text>
-        </View>
-      )}
+      <View style={styles.tooltip} pointerEvents="none">
+        <View style={{ ...styles.tooltipBackground, zIndex: zIndex + 10 }} />
+        <Text style={{ ...styles.tooltipText, zIndex: zIndex + 11 }}>
+          {`Showing: ${displayInfo.renderedCount}/${displayInfo.totalCount}`}
+        </Text>
+      </View>
     </View>
   );
 };
