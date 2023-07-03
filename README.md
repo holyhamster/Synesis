@@ -1,5 +1,5 @@
 # Synesis
-<img src="https://github.com/holyhamster/Synesis/assets/27297124/51209dac-46e9-4dee-aff3-06fa8ac8db4d" align="right" width="300" height="300"> 
+<img src="https://raw.githubusercontent.com/holyhamster/Synesis/master/assets/icon.png" align="right" width="300" height="300"> 
 
 <h3>Writer's tool to help you find the right words.</h3>
 <ul>
