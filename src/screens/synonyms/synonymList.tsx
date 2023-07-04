@@ -38,8 +38,11 @@ const SynonymList: FC<SynonymListProps> = ({
   addNewWord,
   style,
 }) => {
+  const isOnWeb = Platform.OS == "web";
   //load tile limit from memory and watch the event for its change
-  const [cloudLimit, setCloudLimit] = useState(DEFAULT_CLOUD_LIMIT);
+  const [cloudLimit, setCloudLimit] = useState(
+    isOnWeb ? DEFAULT_CLOUD_LIMIT_WEB : DEFAULT_CLOUD_LIMIT_MOBILE
+  );
   useEffect(() => {
     const loadCloudLimit = () =>
       Storage.GetString(StringTypesEnum.CloudCount).then((value) => {
@@ -65,13 +68,9 @@ const SynonymList: FC<SynonymListProps> = ({
 
   //layout transition for tile movement (android only)
   const transitionViewRef = useRef<TransitioningView>();
-  const animateTransition = () => {
-    if (Platform.OS == "android")
-      transitionViewRef.current?.animateNextTransition();
-  };
 
   useEffect(() => {
-    animateTransition();
+    if (!isOnWeb) transitionViewRef.current?.animateNextTransition();
   }, [synonyms]);
 
   //create cloud components
@@ -100,7 +99,9 @@ const SynonymList: FC<SynonymListProps> = ({
         style={{ zIndex: zIndex }}
         contentContainerStyle={styles.synonymScrollContainer}
       >
-        {Platform.OS == "android" ? (
+        {isOnWeb ? (
+          <View style={styles.innerView}>{cloudComponents}</View>
+        ) : (
           <Transitioning.View
             ref={transitionViewRef}
             style={styles.innerView}
@@ -108,8 +109,6 @@ const SynonymList: FC<SynonymListProps> = ({
           >
             {cloudComponents}
           </Transitioning.View>
-        ) : (
-          <View style={styles.innerView}>{cloudComponents}</View>
         )}
       </ScrollView>
 
@@ -162,6 +161,7 @@ const styles = StyleSheet.create({
 
 const transition = <Transition.Change durationMs={100} />;
 
-const DEFAULT_CLOUD_LIMIT = 30;
+const DEFAULT_CLOUD_LIMIT_MOBILE = 40;
+const DEFAULT_CLOUD_LIMIT_WEB = 70;
 const BACKGROUND_IMAGE = require("../../../assets/icon.png");
 export default SynonymList;
