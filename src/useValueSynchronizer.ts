@@ -1,6 +1,6 @@
 import React from "react";
 
-//maintains an array of variables and accompanying callbacks, that are called syncronously when the value is changed
+//maintains an array of variables and accompanying callbacks that are called syncronously when the value is changed
 
 //Key extractor must produce a unique key for each of the variable
 //setters are paired to a variable through a key
