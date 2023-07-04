@@ -1,5 +1,5 @@
 # Synesis
-<img src="https://i.imgur.com/jng58Jp.gif" align="right" width="265" height="355" align="right"> 
+<img src="https://i.imgur.com/jng58Jp.gif" align="right" width="265" height="355" align="right" style="margin-left: 10px;"> 
 <h3>Writer's tool to help you find the right words</h3>
 React Native app that helps you find synonyms for your writing.
 <br> <br>
