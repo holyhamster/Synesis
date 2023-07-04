@@ -43,9 +43,9 @@ const SynonymWord: FC<SynonymWordProps> = memo(
           backgroundColor: colorNormal?.getDominantColor() ?? "white",
         },
         word: {
-          margin: 5,
-          marginHorizontal: 10,
-          fontSize: 20,
+          margin: FONT_SIZE / 4,
+          marginHorizontal: FONT_SIZE / 2,
+          fontSize: FONT_SIZE,
           zIndex: zIndex + 2,
         },
       });
@@ -99,5 +99,5 @@ interface SynonymWordStyles {
   container: ViewStyle;
   word: TextStyle;
 }
-
+const FONT_SIZE = Platform.OS == "web" ? 40 : 20;
 export default SynonymWord;
