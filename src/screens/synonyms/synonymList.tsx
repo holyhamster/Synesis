@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   DeviceEventEmitter,
   Platform,
   ScrollView,
@@ -63,6 +64,7 @@ const SynonymList: FC<SynonymListProps> = ({
     wordToSortBy,
     cloudLimit
   );
+  const showingHintText = `Showing: ${displayInfo.renderedCount}/${displayInfo.totalCount}`;
 
   //layout transition for tile movement (android only)
   const transitionViewRef = useRef<TransitioningView>();
@@ -90,9 +92,26 @@ const SynonymList: FC<SynonymListProps> = ({
     );
   }
 
+  //set flag for activity indicator
+  const synonymsBeingFetched =
+    synonyms.find((synonym) => !synonym.WasFetched) != null;
+  const tilesAreRendering =
+    displayInfo.renderedCount < displayInfo.totalCount &&
+    displayInfo.renderedCount < cloudLimit;
+  const loadingActive = synonymsBeingFetched || tilesAreRendering;
+
   return (
     <View style={{ flex: 1 }}>
       <BackgroundImage source={BACKGROUND_IMAGE} faded={clouds.length > 0} />
+      <View style={styles.activityIndicator}>
+        <ActivityIndicator
+          pointerEvents="none"
+          animating={loadingActive}
+          size="large"
+          color={Colors.CountourColor}
+        />
+      </View>
+
       <ScrollView
         keyboardShouldPersistTaps="handled"
         style={{ zIndex: zIndex }}
@@ -114,7 +133,7 @@ const SynonymList: FC<SynonymListProps> = ({
       <View style={styles.tooltip} pointerEvents="none">
         <View style={{ ...styles.tooltipBackground, zIndex: zIndex + 10 }} />
         <Text style={{ ...styles.tooltipText, zIndex: zIndex + 11 }}>
-          {`Showing: ${displayInfo.renderedCount}/${displayInfo.totalCount}`}
+          {showingHintText}
         </Text>
       </View>
     </View>
@@ -127,6 +146,15 @@ const DEFAULT_CLOUD_LIMIT: number = IS_ON_MOBILE ? 40 : 70;
 const BACKGROUND_IMAGE = require("../../../assets/icon.png");
 
 const styles = StyleSheet.create({
+  activityIndicator: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    width: 50,
+    height: 50,
+    zIndex: 1,
+  },
+
   innerView: {
     flex: 1,
     flexDirection: "row",

@@ -1,12 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import React, { FC, useCallback, useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  StyleSheet,
-  View,
-  ActivityIndicator,
-  DeviceEventEmitter,
-} from "react-native";
+import { StyleSheet, View, DeviceEventEmitter } from "react-native";
 
 import SynonymList from "./synonymList";
 import Dictionary from "../../dictionaries/dictionary";
@@ -65,12 +60,10 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
     [synonyms]
   );
 
-  const wordsBeingFetched =
-    synonyms.find((synonym) => !synonym.WasFetched) != null;
-
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar style="auto" />
+
       <SynonymList
         synonyms={synonyms.filter(
           (synonym) => synonym.WasFetched && !synonym.IsEmpty
@@ -79,14 +72,6 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
         addNewWord={addWord}
         wordToSortBy={highlightedWord}
       />
-      <View style={styles.connectionIndicator}>
-        <ActivityIndicator
-          pointerEvents="none"
-          animating={wordsBeingFetched}
-          size="large"
-          color={Colors.CountourColor}
-        />
-      </View>
 
       <View style={styles.controlView}>
         <ControlPanelView
@@ -105,15 +90,6 @@ const SynonymScreen: FC<SynesisProps> = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  connectionIndicator: {
-    position: "absolute",
-    right: 10,
-    top: 50,
-    width: 40,
-    height: 40,
-    zIndex: 1,
-  },
-
   container: {
     flex: 1,
     backgroundColor: "white",
