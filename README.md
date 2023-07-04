@@ -1,9 +1,15 @@
 # Synesis
-<img src="https://raw.githubusercontent.com/holyhamster/Synesis/master/assets/icon.png" align="right" width="300" height="300"> 
-
-<h3>Writer's tool to help you find the right words.</h3>
+<img src="https://i.imgur.com/jng58Jp.gif" align="right" width="265" height="355" align="right"> 
+<h3>Writer's tool to help you find the right words</h3>
+React Native app that helps you find synonyms for your writing.
+<br> <br>
 <ul>
-<li>Cross-reference multiple words to find the perfect synonym</li>
-  <li>Switch between different dictionary APIs</li>
-  <li>Intuitive animated layout</li>
+<li>Cross-reference multiple words and choose the best synonym for your context</li>
+  <li>Select from different dictionary APIs to suit your needs</li>
+  <li>Enjoy a smooth animated UI</li>
 </ul>
+
+The web and android versions share the same code base for easier reading and editing.
+
+[Check out the web version here!](https://holyhamster.github.io/Synesis/)
+
