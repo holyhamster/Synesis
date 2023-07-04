@@ -40,9 +40,7 @@ const SynonymList: FC<SynonymListProps> = ({
 }) => {
   const isOnWeb = Platform.OS == "web";
   //load tile limit from memory and watch the event for its change
-  const [cloudLimit, setCloudLimit] = useState(
-    isOnWeb ? DEFAULT_CLOUD_LIMIT_WEB : DEFAULT_CLOUD_LIMIT_MOBILE
-  );
+  const [cloudLimit, setCloudLimit] = useState(DEFAULT_CLOUD_LIMIT);
   useEffect(() => {
     const loadCloudLimit = () =>
       Storage.GetString(StringTypesEnum.CloudCount).then((value) => {
@@ -84,6 +82,7 @@ const SynonymList: FC<SynonymListProps> = ({
       <SynonymWord
         key={name}
         word={name}
+        fontSize={FONT_SIZE}
         colorNormal={normal}
         onPress={addNewWord}
         style={{ zIndex: zIndex + 1 }}
@@ -122,6 +121,11 @@ const SynonymList: FC<SynonymListProps> = ({
   );
 };
 
+const IS_ON_MOBILE = Platform.OS != "web";
+const FONT_SIZE: number = IS_ON_MOBILE ? 20 : 30;
+const DEFAULT_CLOUD_LIMIT: number = IS_ON_MOBILE ? 40 : 70;
+const BACKGROUND_IMAGE = require("../../../assets/icon.png");
+
 const styles = StyleSheet.create({
   innerView: {
     flex: 1,
@@ -129,7 +133,7 @@ const styles = StyleSheet.create({
     alignContent: "flex-start",
     justifyContent: "space-around",
     flexWrap: "wrap",
-    gap: 15,
+    gap: FONT_SIZE * 0.7,
     margin: 10,
   },
 
@@ -161,7 +165,4 @@ const styles = StyleSheet.create({
 
 const transition = <Transition.Change durationMs={100} />;
 
-const DEFAULT_CLOUD_LIMIT_MOBILE = 40;
-const DEFAULT_CLOUD_LIMIT_WEB = 70;
-const BACKGROUND_IMAGE = require("../../../assets/icon.png");
 export default SynonymList;
