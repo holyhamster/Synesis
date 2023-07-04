@@ -14,13 +14,13 @@ function getFreeColor(takenColors: string[]): string {
 //saves values from old map and generates new ones
 export function RebuildColorMap<T>(oldMap: Map<T, string>, keys: T[]) {
   const takenColors = new Set<string>();
-  oldMap.forEach((color, key) => {
+  oldMap?.forEach((color, key) => {
     if (keys.includes(key)) takenColors.add(color);
   });
 
   const newColormap = new Map<T, string>();
   keys.forEach((key) => {
-    const color = oldMap.get(key) || getFreeColor(Array.from(takenColors));
+    const color = oldMap?.get(key) || getFreeColor(Array.from(takenColors));
     newColormap.set(key, color);
     takenColors.add(color);
   });
