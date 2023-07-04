@@ -1,5 +1,6 @@
 import React, { FC, useEffect, useRef, useState } from "react";
 import {
+  ActivityIndicator,
   DeviceEventEmitter,
   Platform,
   ScrollView,
@@ -38,6 +39,7 @@ const SynonymList: FC<SynonymListProps> = ({
   addNewWord,
   style,
 }) => {
+  const isOnWeb = Platform.OS == "web";
   //load tile limit from memory and watch the event for its change
   const [cloudLimit, setCloudLimit] = useState(DEFAULT_CLOUD_LIMIT);
   useEffect(() => {
@@ -62,16 +64,13 @@ const SynonymList: FC<SynonymListProps> = ({
     wordToSortBy,
     cloudLimit
   );
+  const showingHintText = `Showing: ${displayInfo.renderedCount}/${displayInfo.totalCount}`;
 
   //layout transition for tile movement (android only)
   const transitionViewRef = useRef<TransitioningView>();
-  const animateTransition = () => {
-    if (Platform.OS == "android")
-      transitionViewRef.current?.animateNextTransition();
-  };
 
   useEffect(() => {
-    animateTransition();
+    if (!isOnWeb) transitionViewRef.current?.animateNextTransition();
   }, [synonyms]);
 
   //create cloud components
@@ -85,6 +84,7 @@ const SynonymList: FC<SynonymListProps> = ({
       <SynonymWord
         key={name}
         word={name}
+        fontSize={FONT_SIZE}
         colorNormal={normal}
         onPress={addNewWord}
         style={{ zIndex: zIndex + 1 }}
@@ -92,15 +92,34 @@ const SynonymList: FC<SynonymListProps> = ({
     );
   }
 
+  //set flag for activity indicator
+  const synonymsBeingFetched =
+    synonyms.find((synonym) => !synonym.WasFetched) != null;
+  const tilesAreRendering =
+    displayInfo.renderedCount < displayInfo.totalCount &&
+    displayInfo.renderedCount < cloudLimit;
+  const loadingActive = synonymsBeingFetched || tilesAreRendering;
+
   return (
     <View style={{ flex: 1 }}>
       <BackgroundImage source={BACKGROUND_IMAGE} faded={clouds.length > 0} />
+      <View style={styles.activityIndicator}>
+        <ActivityIndicator
+          pointerEvents="none"
+          animating={loadingActive}
+          size="large"
+          color={Colors.CountourColor}
+        />
+      </View>
+
       <ScrollView
         keyboardShouldPersistTaps="handled"
         style={{ zIndex: zIndex }}
         contentContainerStyle={styles.synonymScrollContainer}
       >
-        {Platform.OS == "android" ? (
+        {isOnWeb ? (
+          <View style={styles.innerView}>{cloudComponents}</View>
+        ) : (
           <Transitioning.View
             ref={transitionViewRef}
             style={styles.innerView}
@@ -108,29 +127,41 @@ const SynonymList: FC<SynonymListProps> = ({
           >
             {cloudComponents}
           </Transitioning.View>
-        ) : (
-          <View style={styles.innerView}>{cloudComponents}</View>
         )}
       </ScrollView>
 
       <View style={styles.tooltip} pointerEvents="none">
         <View style={{ ...styles.tooltipBackground, zIndex: zIndex + 10 }} />
         <Text style={{ ...styles.tooltipText, zIndex: zIndex + 11 }}>
-          {`Showing: ${displayInfo.renderedCount}/${displayInfo.totalCount}`}
+          {showingHintText}
         </Text>
       </View>
     </View>
   );
 };
 
+const IS_ON_MOBILE = Platform.OS != "web";
+const FONT_SIZE: number = IS_ON_MOBILE ? 20 : 30;
+const DEFAULT_CLOUD_LIMIT: number = IS_ON_MOBILE ? 40 : 70;
+const BACKGROUND_IMAGE = require("../../../assets/icon.png");
+
 const styles = StyleSheet.create({
+  activityIndicator: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+    width: 50,
+    height: 50,
+    zIndex: 1,
+  },
+
   innerView: {
     flex: 1,
     flexDirection: "row",
     alignContent: "flex-start",
     justifyContent: "space-around",
     flexWrap: "wrap",
-    gap: 15,
+    gap: FONT_SIZE * 0.7,
     margin: 10,
   },
 
@@ -162,6 +193,4 @@ const styles = StyleSheet.create({
 
 const transition = <Transition.Change durationMs={100} />;
 
-const DEFAULT_CLOUD_LIMIT = 30;
-const BACKGROUND_IMAGE = require("../../../assets/icon.png");
 export default SynonymList;

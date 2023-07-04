@@ -16,6 +16,7 @@ import * as Colors from "../../colors";
 
 interface SynonymWordProps {
   word: string;
+  fontSize: number;
   colorNormal: ColorNormal;
   onPress: (word: string) => void;
   style?: ViewStyle;
@@ -23,7 +24,7 @@ interface SynonymWordProps {
 
 //pressable tile with a word and a sharp color gradient for given color normal
 const SynonymWord: FC<SynonymWordProps> = memo(
-  ({ colorNormal, word, onPress, style: propStyle }) => {
+  ({ colorNormal, word, onPress, style: propStyle, fontSize }) => {
     //run the animation when the component mounts and unmounts
     const viewOpacity = React.useRef(new Animated.Value(0)).current;
     React.useEffect(() => {
@@ -43,9 +44,9 @@ const SynonymWord: FC<SynonymWordProps> = memo(
           backgroundColor: colorNormal?.getDominantColor() ?? "white",
         },
         word: {
-          margin: 5,
-          marginHorizontal: 10,
-          fontSize: 20,
+          margin: fontSize / 4,
+          marginHorizontal: fontSize / 2,
+          fontSize: fontSize,
           zIndex: zIndex + 2,
         },
       });
@@ -99,5 +100,4 @@ interface SynonymWordStyles {
   container: ViewStyle;
   word: TextStyle;
 }
-
 export default SynonymWord;
